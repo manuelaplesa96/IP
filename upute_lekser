@@ -31,3 +31,6 @@ Stavila san da // bude linijski komentar, a /* */ višelinijski.
 Dodala san ISPIŠI = 'ispiši' koji bi predstavlja nešto ko naredbu print(x).
 
 
+Što ako imamo /* ? Zasad javi grešku da očekuje */ (kraj komentara)
+*/ lekser prevede u PUTA KROZ jer ga jos nije briga šta nije logično, pa ne znan dal drugačije handleat dio s komentarima u lekseru?
+

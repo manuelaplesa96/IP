@@ -66,7 +66,7 @@ def nl_lex(kod):
 
 
 if __name__=='__main__':
-	ulaz = '5/1 //ja sam linijski komentar\n'
+	ulaz = '5 + 1 //ja sam linijski komentar\n'
 	print(ulaz)
 	
 	tokeni = list(nl_lex(ulaz))
