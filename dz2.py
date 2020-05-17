@@ -13,15 +13,13 @@ from pj import *
 class NL(enum.Enum):
 	class STRING(Token): pass #string moze biti string kao tip i kao naziv varijable
 	class BROJ(Token): pass #broj je broj ili vrijednost varijable
+	class BREAK(Token): pass # za izlazak iz petlje breakom
 	MANJE, VEĆE = '<>'
-	MJEDNAKO = '<='
-	VJEDNAKO = '>='
-	NJEDNAKO = '!='
-	NEGACIJA = '!'
-	JEDNAKO = '=='
-	PRIDRUŽI = '='
-	PLUS, PUTA, MINUS, KROZ, OTVORENA, ZATVORENA, ZAREZ, TOČKAZAREZ = '+*-/(),;'
-	ISPIŠI = 'ispiši'
+	MJEDNAKO, VJEDNAKO, NJEDNAKO, JEDNAKO, PLUSP = '<=', '>=', '!=', '==', '+='
+	NEGACIJA, PRIDRUŽI = '!', '='
+	PLUS, PUTA, MINUS, KROZ, ZAREZ, TOČKAZAREZ, OOTV, OZATV, VOTV, VZATV = '+*-/,;(){}'
+	ISPIŠI, VRATI = 'ispiši', 'vrati'
+	FOR, IF, ELSE, WHILE = 'for', 'if', 'else', 'while'
 
 def nl_lex(kod):
 	lex = Tokenizer(kod)
@@ -62,11 +60,17 @@ def nl_lex(kod):
 			if lex.slijedi('='):
 				yield lex.literal(NL.JEDNAKO)
 			else: yield lex.literal(NL.PRIDRUŽI)
+		elif znak=='+':
+			if lex.slijedi('='):
+				yield lex.literal(NL.PLUSP)
+			else: yield lex.literal(NO.PLUS)
 		else: yield lex.literal(NL)
+
 
 
 if __name__=='__main__':
 	ulaz = '5 + 1 //ja sam linijski komentar\n'
+	#ulaz = 'if( i == 5 ) break;'
 	print(ulaz)
 	
 	tokeni = list(nl_lex(ulaz))
