@@ -17,6 +17,7 @@ class NL(enum.Enum):
 	MJEDNAKO = '<='
 	VJEDNAKO = '>='
 	NJEDNAKO = '!='
+	NEGACIJA = '!'
 	JEDNAKO = '=='
 	PRIDRUŽI = '='
 	PLUS, PUTA, MINUS, KROZ, OTVORENA, ZATVORENA, ZAREZ, TOČKAZAREZ = '+*-/(),;'
@@ -45,11 +46,28 @@ def nl_lex(kod):
 		elif znak.isalpha():
 		    lex.zvijezda(str.isalnum)
 		    yield lex.literal(NL.STRING, case=False)
+		elif znak == '!':
+			if lex.slijedi('='):
+				yield lex.literal(NL.NJEDNAKO)
+			else:
+				yield lex.literal(NL.NEGACIJA)
+		elif znak == '<':
+			if lex.slijedi('='):
+				yield lex.literal(NL.MJEDNAKO)
+			else: yield lex.literal(NL.MANJE)
+		elif znak == '>':
+			if lex.slijedi('='):
+				yield lex.literal(NL.VJEDNAKO)
+			else: yield lex.literal(NL.VEĆE)
+		elif znak == '=':
+			if lex.slijedi('='):
+				yield lex.literal(NL.JEDNAKO)
+			else: yield lex.literal(NL.PRIDRUŽI)
 		else: yield lex.literal(NL)
 
 
 if __name__=='__main__':
-	ulaz = 'x = 5;'
+	ulaz = '5 == y'
 	print(ulaz)
 	
 	tokeni = list(nl_lex(ulaz))
