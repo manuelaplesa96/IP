@@ -26,7 +26,7 @@ Grananja i petlje još nisan ništa.
 
 Znakove za druge operatore san klasično. == je jednako ko u C-u. 
 
-Stavila san da -- bude linijski komentar (ko u SQL-u) a /* */ višelinijski. Ako se nekom da, može se vjt u lekseru popraviti da // bude linijski kao u C-u, ovako mi je bilo jednostavnije zbog različitog početnog znaka (- i /).
+Stavila san da // bude linijski komentar, a /* */ višelinijski. 
 
 Dodala san ISPIŠI = 'ispiši' koji bi predstavlja nešto ko naredbu print(x).
 

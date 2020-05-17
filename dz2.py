@@ -31,15 +31,14 @@ def nl_lex(kod):
 		elif znak.isdigit():
 			lex.zvijezda(str.isdigit)
 			yield lex.token(NL.BROJ)
-		elif znak == '-': #linijski komentari --
-			lex.pročitaj('-')
-			lex.pročitaj_do('\n')
-			lex.zanemari()
-		elif znak == '/': #višelinijski komentari /* */
-			lex.pročitaj('*')
-			lex.pročitaj_do('*')
+		elif znak == '/': #višelinijski komentari /* */, linijski //
 			if lex.slijedi('/'):
-				lex.zanemari()
+				lex.pročitaj_do('\n')
+			else:
+				lex.pročitaj('*')
+				lex.pročitaj_do('*')
+				if lex.slijedi('/'):
+					lex.zanemari()
 		elif znak == '"':
 			lex.pročitaj_do('"')
 			yield lex.literal(NL.STRING)	
@@ -67,7 +66,7 @@ def nl_lex(kod):
 
 
 if __name__=='__main__':
-	ulaz = '5 == y'
+	ulaz = '5 -1 //ja sam linijski komentar\n'
 	print(ulaz)
 	
 	tokeni = list(nl_lex(ulaz))
