@@ -1,6 +1,5 @@
 # IP
 
-Dodala sam petlje i {} u class NL, a zbog pojave vitičastih zagrada sam oble preimenovala u OOTV i OZATV
 
 ## Upute lekser
 
