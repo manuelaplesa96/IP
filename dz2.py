@@ -15,6 +15,7 @@ class NL(enum.Enum):
 	class BROJ(Token): pass #broj je broj ili vrijednost varijable
 	class BREAK(Token): pass # za izlazak iz petlje breakom
 	MANJE, VEĆE = '<>'
+	INKR = '++'
 	MJEDNAKO, VJEDNAKO, NJEDNAKO, JEDNAKO, PLUSP = '<=', '>=', '!=', '==', '+='
 	NEGACIJA, PRIDRUŽI = '!', '='
 	PLUS, PUTA, MINUS, KROZ, ZAREZ, TOČKAZAREZ, OOTV, OZATV, VOTV, VZATV = '+*-/,;(){}'
@@ -63,18 +64,29 @@ def nl_lex(kod):
 		elif znak=='+':
 			if lex.slijedi('='):
 				yield lex.literal(NL.PLUSP)
-			else: yield lex.literal(NO.PLUS)
+			if lex.slijedi('+'):
+				yield lex.literal(NL.INKR)
+			else: yield lex.literal(NL.PLUS)
 		else: yield lex.literal(NL)
 
 
 
 if __name__=='__main__':
-	ulaz = '5 + 1 //ja sam linijski komentar\n'
+	ulaz = '5 + 1++ { } () - 6/7//ja sam linijski komentar\n'
 	#ulaz = 'if( i == 5 ) break;'
 	print(ulaz)
 	
 	tokeni = list(nl_lex(ulaz))
 	print(*tokeni) #'otpakirana' lista
+
+	print()
+
+	ulaz2 = 'for( i = 0; i < 10; i++ ){ if( i < 9 ) ispiši(i); else break; }'
+	#ulaz = 'if( i == 5 ) break;'
+	print(ulaz2)
+	
+	tokeni2 = list(nl_lex(ulaz2))
+	print(*tokeni2) #'otpakirana' lista
 
 
 
