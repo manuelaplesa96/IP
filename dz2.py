@@ -45,9 +45,6 @@ def nl_lex(kod):
 		elif znak == '"':
 			lex.pročitaj_do('"')
 			yield lex.literal(NL.STRING)	
-		elif znak.isalpha():
-		    lex.zvijezda(str.isalnum)
-		    yield lex.literal(NL.STRING, case=False)
 		elif znak == '!':
 			if lex.slijedi('='):
 				yield lex.literal(NL.NJEDNAKO)
@@ -94,33 +91,32 @@ def nl_lex(kod):
 # start		-> naredba TOČKAZAREZ naredbe 
 # naredbe 	-> '' | naredba TOČKAZAREZ naredbe
 # naredba	-> pridruži | OOTV naredbe OZATV | petlja | grananje |
-#			   ispis TOČKAZAREZ	| unos TOČKAZAREZ | BREAK TOČKAZAREZ | vrati TOČKAZAREZ | cast
-# pridruži	-> IME JEDNAKO ( BROJ | STRING ) | IME JEDNAKO izraz
+#			   ispis | unos | BREAK | vrati | cast
+# pridruži	-> IME PRIDRUŽI ( BROJ | STRING ) | IME PRIDRUŽI izraz
 # petlja	-> for naredba | for VOTV naredbe VZATV
-# for		-> FOR OOTV IME JEDNAKO BROJ TOČKAZAREZ IME MANJE BROJ TOČKAZAREZ inkrement OZATV
+# for		-> FOR OOTV IME PRIDRUŽI BROJ TOČKAZAREZ IME ( MANJE | MJEDNAKO ) BROJ TOČKAZAREZ inkrement OZATV
 # inkrement	-> IME PPLUS | PPLUS IME | IME PJENDAKO BROJ 
 # grananje	-> ( IF | WHILE ) OOTV uvjeti OZATV kod | IF OOTV uvjeti OZATV kod ELSE kod |
 #			   DO kod WHILE OOTV uvjeti OZATV
 # kod 		-> naredba | VOTV naredbe VZATV 
-# uvjeti	-> uvjet log uvjeti | uvjet 
-# uvjet		-> (NEGACIJA | '' ) ( BROJ aritm BROJ | STRING str STRING ) | 
-#			   OOTV izraz OZATV aritm OOTV izraz OZATV
+# uvjeti	-> OOTV uvjet OZATV log uvjeti | OOTV uvjet OZATV 
+# uvjet		-> (NEGACIJA | '' ) ( BROJ aritm BROJ | STRING str STRING ) | izraz aritm izraz
 # aritm		-> JEDNAKO | MJEDNAKO | VJEDNAKO | NJEDNAKO | MANJE | VEĆE
 # str 		-> JEDNAKO
-# izraz 	-> BROJ ( PLUS | MINUS | PUTA | KROZ ) BROJ | STRING PLUS STRING
+# izraz 	-> BROJ ( PLUS | MINUS | PUTA | KROZ ) BROJ | STRING PLUS STRING | BROJ
 # log 		-> AND | OR
-# ispis		-> COUT ispisi TOČKAZAREZ | COUT ispisi MMANJE ENDL TOČKAZAREZ
+# ispis		-> COUT ispisi | COUT ispisi MMANJE ENDL
 # ispisi	-> '' | MMANJE IME ispisi
-# unos		-> CIN unosi TOČKAZAREZ | CIN unosi VVEĆE ENDL TOČKAZAREZ
+# unos		-> CIN unosi | CIN unosi VVEĆE ENDL
 # unosi		-> '' | VVEĆE IME unosi
-# vrati		-> RETURN IME TOCKAZAREZ  ??? vraćanje polja
+# vrati		-> RETURN IME  ??? vraćanje polja
 # cast 		-> TOSTRING OOTV BROJ OZATV | TOINT OOTV STRING OZATV
 
 
 
 if __name__=='__main__':
 	ulaz = '5 + 1++ && { } () - 6/7//ja sam linijski komentar\n'
-	#ulaz = 'if( i == 5 ) break;'
+	#ulaz = 'i=5'
 	print(ulaz)
 	
 	tokeni = list(nl_lex(ulaz))
