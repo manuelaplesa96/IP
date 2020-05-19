@@ -11,17 +11,21 @@
 from pj import *
 
 class NL(enum.Enum):
-	class STRING(Token): pass #string moze biti string kao tip i kao naziv varijable
-	class BROJ(Token): pass #broj je broj ili vrijednost varijable
+	class STRING(Token): pass # string moze biti string kao tip i kao naziv varijable
+	class BROJ(Token): pass # broj je broj ili vrijednost varijable
 	class BREAK(Token): pass # za izlazak iz petlje breakom
+	class IME(Token): pass # imena varijabli
 	MANJE, VEĆE = '<>'
-	INKR = '++'
-	MJEDNAKO, VJEDNAKO, NJEDNAKO, JEDNAKO, PLUSP = '<=', '>=', '!=', '==', '+='
+	PPLUS = '++'
+	MJEDNAKO, VJEDNAKO, NJEDNAKO, JEDNAKO, PJEDNAKO = '<=', '>=', '!=', '==', '+='
+	MMANJE, VVEĆE = '<<', '>>'
 	NEGACIJA, PRIDRUŽI = '!', '='
 	PLUS, PUTA, MINUS, KROZ, ZAREZ, TOČKAZAREZ, OOTV, OZATV, VOTV, VZATV = '+*-/,;(){}'
-	ISPIŠI, VRATI = 'ispiši', 'vrati'
-	FOR, IF, ELSE, WHILE = 'for', 'if', 'else', 'while'
-
+	COUT, CIN, RETURN,  = 'cout', 'cin','return'
+	FOR, IF, ELSE, WHILE, DO = 'for', 'if', 'else', 'while', 'do'
+	AND, OR = '&&', '||'
+	TOSTRING, TOINT = 'toStr', 'toInt'
+ 
 def nl_lex(kod):
 	lex = Tokenizer(kod)
 	for znak in iter(lex.čitaj, ''): #čitaj do kraja programa
@@ -52,27 +56,70 @@ def nl_lex(kod):
 		elif znak == '<':
 			if lex.slijedi('='):
 				yield lex.literal(NL.MJEDNAKO)
+			elif lex.slijedi('<'):
+				yield lex.literal(NL.MMANJE)
 			else: yield lex.literal(NL.MANJE)
 		elif znak == '>':
 			if lex.slijedi('='):
 				yield lex.literal(NL.VJEDNAKO)
+			elif lex.slijedi('>'):
+				yield lex.literal(NL.VVEĆE)
 			else: yield lex.literal(NL.VEĆE)
 		elif znak == '=':
 			if lex.slijedi('='):
 				yield lex.literal(NL.JEDNAKO)
 			else: yield lex.literal(NL.PRIDRUŽI)
-		elif znak=='+':
+		elif znak == '+':
 			if lex.slijedi('='):
-				yield lex.literal(NL.PLUSP)
+				yield lex.literal(NL.PJEDNAKO)
 			if lex.slijedi('+'):
-				yield lex.literal(NL.INKR)
+				yield lex.literal(NL.PPLUS)
 			else: yield lex.literal(NL.PLUS)
+		elif znak.isalpha():
+			lex.zvijezda(str.isalpha)
+			yield lex.literal(NL.IME)
+		elif znak == '&':
+			if lex.slijedi('&'):
+				yield lex.literal(NL.AND)
+			else: raise lex.greška("Krivi unos!")
+		elif znak == '|':
+			if lex.slijedi('|'):
+				yield lex.literal(NL.OR)
+			else: raise lex.greška("Krivi unos!")
 		else: yield lex.literal(NL)
 
 
 
+###Beskontekstna gramatika
+# start		-> naredba TOČKAZAREZ naredbe 
+# naredbe 	-> '' | naredba TOČKAZAREZ naredbe
+# naredba	-> pridruži | OOTV naredbe OZATV | petlja | grananje |
+#			   ispis TOČKAZAREZ	| unos TOČKAZAREZ | BREAK TOČKAZAREZ | vrati TOČKAZAREZ | cast
+# pridruži	-> IME JEDNAKO ( BROJ | STRING ) | IME JEDNAKO izraz
+# petlja	-> for naredba | for VOTV naredbe VZATV
+# for		-> FOR OOTV IME JEDNAKO BROJ TOČKAZAREZ IME MANJE BROJ TOČKAZAREZ inkrement OZATV
+# inkrement	-> IME PPLUS | PPLUS IME | IME PJENDAKO BROJ 
+# grananje	-> ( IF | WHILE ) OOTV uvjeti OZATV kod | IF OOTV uvjeti OZATV kod ELSE kod |
+#			   DO kod WHILE OOTV uvjeti OZATV
+# kod 		-> naredba | VOTV naredbe VZATV 
+# uvjeti	-> uvjet log uvjeti | uvjet 
+# uvjet		-> (NEGACIJA | '' ) ( BROJ aritm BROJ | STRING str STRING ) | 
+#			   OOTV izraz OZATV aritm OOTV izraz OZATV
+# aritm		-> JEDNAKO | MJEDNAKO | VJEDNAKO | NJEDNAKO | MANJE | VEĆE
+# str 		-> JEDNAKO
+# izraz 	-> BROJ ( PLUS | MINUS | PUTA | KROZ ) BROJ | STRING PLUS STRING
+# log 		-> AND | OR
+# ispis		-> COUT ispisi TOČKAZAREZ | COUT ispisi MMANJE ENDL TOČKAZAREZ
+# ispisi	-> '' | MMANJE IME ispisi
+# unos		-> CIN unosi TOČKAZAREZ | CIN unosi VVEĆE ENDL TOČKAZAREZ
+# unosi		-> '' | VVEĆE IME unosi
+# vrati		-> RETURN IME TOCKAZAREZ  ??? vraćanje polja
+# cast 		-> TOSTRING OOTV BROJ OZATV | TOINT OOTV STRING OZATV
+
+
+
 if __name__=='__main__':
-	ulaz = '5 + 1++ { } () - 6/7//ja sam linijski komentar\n'
+	ulaz = '5 + 1++ && { } () - 6/7//ja sam linijski komentar\n'
 	#ulaz = 'if( i == 5 ) break;'
 	print(ulaz)
 	

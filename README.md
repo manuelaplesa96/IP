@@ -38,6 +38,8 @@ for(i=0; i <= broj; i++){ kod; }
 while(uvjet){ kod; }
 do{ kod; }while(uvjet)
 
+(NOVO) dodano AND, OR ako ima više uvjeta kod grananja
+
 
 Napomena:
 Podržane su OOTV, OZATV, VOTV te VZATV zagrade ((,),{,}).
@@ -47,15 +49,24 @@ Podržane su OOTV, OZATV, VOTV te VZATV zagrade ((,),{,}).
 +,-,*,/ = PLUS, MINUS, PUTA, KROZ
 Ovisno o tipu varijabli slijeva i zdesna regulirat ćemo značenje tokena.
 Konkatenacija dva stringa: string + string
-string + broj
+(string + broj
 broj + string ili neće biti dozvoljeno ili će cast-ati u lijevi tip, tj.
 string + broj = konkatenacija string + string(broj)
-broj + string = broj akko string = 'broj' ? 
+broj + string = broj akko string = 'broj' ?)
+
+(NOVO) trenutno u bazi posebno da se mora cast napraviti, ne prihvaća ove mješovite izraze 
 
 ### Inkrement i +=:
 
 Podržan je postinkrement i predinkrement (?), tj. j++ te ++j će davati novu vrijednost varijable j uvećanu za 1.
 += će kao i u C-u pridruživati novu vrijednost postojećoj varijabli, npr. j += 5 (j = j + 5). 
+
+(NOVO) PPLUS = '++'
+       PJEDNAKO = '+='
+
+(NOVO) dodana klasa IME za imena varijabli
+
+
 
 
 
