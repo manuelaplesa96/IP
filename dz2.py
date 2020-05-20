@@ -117,10 +117,64 @@ def nl_lex(kod):
 # cast 		-> TOSTRING OOTV BROJ OZATV TOČKAZAREZ | TOINT OOTV STRING OZATV TOČKAZAREZ
 
 
-##parsiranje
 
+class NLParser(Parser):
+	def start(self):
+		naredbe = []
+		while not self >> E.KRAJ: naredbe.append(self.naredba())
+		return Program(naredbe)
 	
+	def naredba(self):
+		if self >> NL.FOR: return self.petlja()
+		elif self >> NL.COUT: return self.ispis()
+		elif self >> {NL.IF, NL.WHILE}: return self.grananje()
+		elif self >> NL.BREAK: return self.prekid()
+		else: raise self.greška()
+
+	def petlja(self):
+		self.pročitaj(NL.OOTV) #već smo pročitali FOR
+		i = self.pročitaj(NL.IME)
+		self.pročitaj(NL.PRIDRUŽI)
+		početak = self.pročitaj(NL.BROJ)
+		self.pročitaj(NL.TOČKAZAREZ)
+
+		i2 = self.pročitaj(NL.IME) 
+		if i != i2: raise SemantičkaGreška('nisu podržane različite varijable')
+		if self >> NL.MANJE:
+			usporedba = self.zadnji
+		elif self >> NL.MMANJE:
+			usporedba = self.zadnji
+		granica = self.pročitaj(NL.BROJ)
+		self.pročitaj(NL.TOČKAZAREZ)
+
+		if self >> NL.PPLUS:  #PREDINKREMENT
+			inkrement = nenavedeno 
+			i3 = self.pročitaj(NL.IME)
+			if i != i3: raise SemantičkaGreška('nisu podržane različite varijable')
+		elif self >> NL.IME: #POSTINKREMENT ili PJEDNAKO
+			i3 = self.zadnji
+			if i != i3: raise SemantičkaGreška('nisu podržane različite varijable')
+			if self >> NL.PPLUS: 
+				inkrement = nenavedeno
+			elif self >> NL.PJEDNAKO: 
+				inkrement = self.pročitaj(NL.BROJ)
+
+		self.pročitaj(NL.OZATV)
 		
+		if self >> NL.VOTV:
+		    blok = []
+		    while not self >> NL.VZATV: blok.append(self.naredba())
+		else: blok = [self.naredba()]
+		return Petlja(i, početak, usporedba, granica, inkrement, blok)
+
+
+
+	def prekid(self):
+		br = self.zadnji
+		self.pročitaj(NL.TOČKAZAREZ)
+		return br
+
+
 
 if __name__=='__main__':
 	ulaz = '5 + 1++ && { } () - 6/7//ja sam linijski komentar\n'
