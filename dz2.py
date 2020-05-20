@@ -105,29 +105,29 @@ def nl_lex(kod):
 
 
 # Beskontekstna gramatika
-# start		-> naredba naredbe
-# naredbe 	-> '' | naredba naredbe
-# naredba	-> pridruži | OOTV naredbe OZATV | petlja | grananje |
-#			   ispis TOČKAZAREZ| unos | BREAK TOČKAZAREZ | vrati | cast
-# pridruži	-> IME PRIDRUŽI ( BROJ | STRING ) TOČKAZAREZ | IME PRIDRUŽI izraz TOČKAZAREZ
-# petlja	-> for naredba | for VOTV naredbe VZATV
-# for		-> FOR OOTV IME PRIDRUŽI BROJ TOČKAZAREZ IME ( MANJE | MJEDNAKO ) BROJ TOČKAZAREZ inkrement OZATV
-# inkrement	-> IME PPLUS | PPLUS IME | IME PJENDAKO BROJ
-# grananje	-> ( IF | WHILE ) uvjeti kod | IF uvjeti kod ELSE kod |
-#			  DO kod WHILE uvjeti
-# kod 		-> naredba | VOTV naredbe VZATV
-# uvjeti	-> OOTV uvjet OZATV log uvjeti | OOTV uvjet OZATV
-# uvjet		-> (NEGACIJA | '' ) ( BROJ aritm BROJ | STRING str STRING ) | izraz aritm izraz
-# aritm		-> JEDNAKO | MJEDNAKO | VJEDNAKO | NJEDNAKO | MANJE | VEĆE
-# str 		-> JEDNAKO
-# izraz 	-> BROJ ( PLUS | MINUS | PUTA | KROZ ) BROJ | STRING PLUS STRING | BROJ
-# log 		-> AND | OR
-# ispis		-> COUT ispisi | COUT ispisi MMANJE ENDL
-# ispisi	-> '' | MMANJE IME ispisi 
-# unos		-> CIN unosi TOČKAZAREZ | CIN unosi VVEĆE ENDL TOČKAZAREZ
-# unosi		-> '' | VVEĆE IME unosi
-# vrati		-> RETURN IME TOČKAZAREZ  ??? vraćanje polja
-# cast 		-> TOSTRING OOTV BROJ OZATV TOČKAZAREZ | TOINT OOTV STRING OZATV TOČKAZAREZ
+# start-> naredba naredbe
+# naredbe -> '' | naredba naredbe
+# naredba-> pridruži | OOTV naredbe OZATV | petlja | grananje |
+#  ispis TOČKAZAREZ| unos | BREAK TOČKAZAREZ | vrati | cast
+# pridruži-> IME PRIDRUŽI ( BROJ | STRING ) TOČKAZAREZ | IME PRIDRUŽI izraz TOČKAZAREZ
+# petlja-> for naredba | for VOTV naredbe VZATV
+# for-> FOR OOTV IME PRIDRUŽI BROJ TOČKAZAREZ IME ( MANJE | MJEDNAKO ) BROJ TOČKAZAREZ inkrement OZATV
+# inkrement-> IME PPLUS | PPLUS IME | IME PJENDAKO BROJ
+# grananje-> ( IF | WHILE ) uvjeti kod | IF uvjeti kod ELSE kod |
+# DO kod WHILE uvjeti
+# kod -> naredba | VOTV naredbe VZATV
+# uvjeti-> OOTV uvjet OZATV log uvjeti | OOTV uvjet OZATV
+# uvjet-> (NEGACIJA | '' ) ( BROJ aritm BROJ | STRING str STRING ) | izraz aritm izraz
+# aritm-> JEDNAKO | MJEDNAKO | VJEDNAKO | NJEDNAKO | MANJE | VEĆE
+# str -> JEDNAKO
+# izraz-> BROJ ( PLUS | MINUS | PUTA | KROZ ) BROJ | STRING PLUS STRING | BROJ
+# log -> AND | OR
+# ispis-> COUT ispisi | COUT ispisi MMANJE ENDL
+# ispisi-> '' | MMANJE IME ispisi 
+# unos-> CIN unosi TOČKAZAREZ | CIN unosi VVEĆE ENDL TOČKAZAREZ
+# unosi-> '' | VVEĆE IME unosi
+# vrati-> RETURN IME TOČKAZAREZ  ??? vraćanje polja
+# cast -> TOSTRING OOTV BROJ OZATV TOČKAZAREZ | TOINT OOTV STRING OZATV TOČKAZAREZ
 
 
 # stabla: Program, Petlja, Grananje, Blok, Ispis, Pridruživanje
@@ -149,7 +149,7 @@ class NLParser(Parser):
         elif self >> NL.BREAK:
             return self.prekid()  # +
         elif self >> NL.IME:
-            return self.pridruživanje()
+            return self.pridruživanje() #+
         else:
             raise self.greška()
     
@@ -162,7 +162,7 @@ class NLParser(Parser):
             self.pročitaj(NL.TOČKAZAREZ)
         return Pridruživanje(ime, pridruženo)
 
-    def grananje(self):
+    def grananje(self): 
         self.pročitaj(NL.OOTV)
         uvjeti = []  # čuvamo polje uvjeta
         log_op = []  # čuvamo polje logičkih operatora među uvjetima
@@ -212,7 +212,7 @@ class NLParser(Parser):
             raise SemantičkaGreška('nisu podržane različite varijable')
         if self >> NL.MANJE:
             usporedba = self.zadnji
-        elif self >> NL.MJEDNAKO:
+        elif self >> NL.MJEDNAKO: #je li potrebno
             usporedba = self.zadnji
         granica = self.pročitaj(NL.BROJ)
         self.pročitaj(NL.TOČKAZAREZ)
@@ -244,7 +244,7 @@ class NLParser(Parser):
         ispisi = []
         novired = False
         while self >> NL.MMANJE:
-            if self >> NL.IME: ispisi.append(self.zadnji)
+            if self >> {NL.IME, NL.STRING}: ispisi.append(self.zadnji)
             elif self >> NL.ENDL:
                 novired = True
                 break
@@ -300,7 +300,7 @@ if __name__ == '__main__':
 
     ulaz3 = '''
         x = "5";  
-        cout << x << endl; 
+        cout << "kata" << endl; 
     '''
 
     print(ulaz3)
