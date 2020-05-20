@@ -100,8 +100,8 @@ def nl_lex(kod):
 # petlja	-> for naredba | for VOTV naredbe VZATV
 # for		-> FOR OOTV IME PRIDRUŽI BROJ TOČKAZAREZ IME ( MANJE | MJEDNAKO ) BROJ TOČKAZAREZ inkrement OZATV
 # inkrement	-> IME PPLUS | PPLUS IME | IME PJENDAKO BROJ 
-# grananje	-> ( IF | WHILE ) OOTV uvjeti OZATV kod | IF OOTV uvjeti OZATV kod ELSE kod |
-#			   DO kod WHILE OOTV uvjeti OZATV
+# grananje	-> ( IF | WHILE ) uvjeti kod | IF uvjeti kod ELSE kod |
+#			  DO kod WHILE uvjeti 
 # kod 		-> naredba | VOTV naredbe VZATV 
 # uvjeti	-> OOTV uvjet OZATV log uvjeti | OOTV uvjet OZATV 
 # uvjet		-> (NEGACIJA | '' ) ( BROJ aritm BROJ | STRING str STRING ) | izraz aritm izraz
@@ -126,11 +126,51 @@ class NLParser(Parser):
 	
 	def naredba(self):
 		if self >> NL.FOR: return self.petlja()
+		elif self >> NL.IF return self.grananje()
 		elif self >> NL.COUT: return self.ispis()
-		elif self >> {NL.IF, NL.WHILE}: return self.grananje()
 		elif self >> NL.BREAK: return self.prekid()
 		else: raise self.greška()
+	
 
+
+	def grananje(self):
+		self.pročitaj(NL.OOTV)
+		uvjeti = [] #čuvamo polje uvjeta
+		log_op = [] #čuvamo polje logičkih operatora među uvjetima
+		uvjet = self.uvjet() #prvi uvjet (možda i jedini)
+		self.pročitaj(NL.OZATV)
+		if self >> {NL.AND, NL.OR}:
+			log_op.append(self.zadnji)
+			self.pročitaj(NL.OOTV)
+			uvjeti.append(self.uvjet()) #dodaj novi uvjet
+			self.pročitaj(NL.OZATV)
+		else: 
+			uvjeti = [uvjet] #ako nema AND/OR, onda postoji samo jedan uvjet
+
+		self.pročitaj(NL.OZATV) #kraj uvjeta
+
+		if self >> NL.VOTV: #blok naredbi
+		    if_blok = []
+		    while not self >> NL.VZATV: if_blok.append(self.naredba())
+		else: if_blok = [self.naredba()]
+
+		if self >> NL.ELSE:
+			if self >> NL.VOTV:
+				else_blok = []
+			    	while not self >> NL.VZATV: else_blok.append(self.naredba())
+			else: else_blok = [self.naredba()]
+		else: 
+			else_blok = Blok([]) #izvrši prazan blok			
+		    
+		return Grananje(uvjeti, log_op, if_blok, else_blok)
+				
+	
+
+
+
+	def uvjet(self):
+		
+	
 	def petlja(self):
 		self.pročitaj(NL.OOTV) #već smo pročitali FOR
 		i = self.pročitaj(NL.IME)
