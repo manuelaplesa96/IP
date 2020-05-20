@@ -33,7 +33,7 @@ class NL(enum.Enum):
     MMANJE, VVEĆE = '<<', '>>'
     NEGACIJA, PRIDRUŽI = '!', '='
     PLUS, PUTA, MINUS, KROZ, ZAREZ, TOČKAZAREZ, OOTV, OZATV, VOTV, VZATV = '+*-/,;(){}'
-    COUT, CIN, RETURN,  = 'cout', 'cin', 'return'
+    COUT, CIN, ENDL = 'cout', 'cin', 'endl'
     FOR, IF, ELSE, WHILE, DO = 'for', 'if', 'else', 'while', 'do'
     AND, OR = '&&', '||'
     TOSTRING, TOINT = 'toStr', 'toInt'
@@ -108,7 +108,7 @@ def nl_lex(kod):
 # start		-> naredba naredbe
 # naredbe 	-> '' | naredba naredbe
 # naredba	-> pridruži | OOTV naredbe OZATV | petlja | grananje |
-#			   ispis | unos | BREAK TOČKAZAREZ | vrati | cast
+#			   ispis TOČKAZAREZ| unos | BREAK TOČKAZAREZ | vrati | cast
 # pridruži	-> IME PRIDRUŽI ( BROJ | STRING ) TOČKAZAREZ | IME PRIDRUŽI izraz TOČKAZAREZ
 # petlja	-> for naredba | for VOTV naredbe VZATV
 # for		-> FOR OOTV IME PRIDRUŽI BROJ TOČKAZAREZ IME ( MANJE | MJEDNAKO ) BROJ TOČKAZAREZ inkrement OZATV
@@ -122,15 +122,15 @@ def nl_lex(kod):
 # str 		-> JEDNAKO
 # izraz 	-> BROJ ( PLUS | MINUS | PUTA | KROZ ) BROJ | STRING PLUS STRING | BROJ
 # log 		-> AND | OR
-# ispis		-> COUT ispisi TOČKAZAREZ | COUT ispisi MMANJE ENDL TOČKAZAREZ
-# ispisi	-> '' | MMANJE IME ispisi TOČKAZAREZ
+# ispis		-> COUT ispisi | COUT ispisi MMANJE ENDL
+# ispisi	-> '' | MMANJE IME ispisi 
 # unos		-> CIN unosi TOČKAZAREZ | CIN unosi VVEĆE ENDL TOČKAZAREZ
 # unosi		-> '' | VVEĆE IME unosi
 # vrati		-> RETURN IME TOČKAZAREZ  ??? vraćanje polja
 # cast 		-> TOSTRING OOTV BROJ OZATV TOČKAZAREZ | TOINT OOTV STRING OZATV TOČKAZAREZ
 
 
-# stabla: Program, Petlja, Grananje, Blok, Ispis, ...
+# stabla: Program, Petlja, Grananje, Blok, Ispis, Pridruživanje
 
 class NLParser(Parser):
     def start(self):
@@ -145,11 +145,22 @@ class NLParser(Parser):
         elif self >> NL.IF:
             return self.grananje()  # +
         elif self >> NL.COUT:
-            return self.ispis()
+            return self.ispis() # +
         elif self >> NL.BREAK:
             return self.prekid()  # +
+        elif self >> NL.IME:
+            return self.pridruživanje()
         else:
             raise self.greška()
+    
+
+    def pridruživanje(self):
+        ime = self.zadnji
+        self.pročitaj(NL.PRIDRUŽI)
+        if self >> {NL.BROJ, NL.STRING}:
+            pridruženo = self.zadnji
+            self.pročitaj(NL.TOČKAZAREZ)
+        return Pridruživanje(ime, pridruženo)
 
     def grananje(self):
         self.pročitaj(NL.OOTV)
@@ -201,7 +212,7 @@ class NLParser(Parser):
             raise SemantičkaGreška('nisu podržane različite varijable')
         if self >> NL.MANJE:
             usporedba = self.zadnji
-        elif self >> NL.MMANJE:
+        elif self >> NL.MJEDNAKO:
             usporedba = self.zadnji
         granica = self.pročitaj(NL.BROJ)
         self.pročitaj(NL.TOČKAZAREZ)
@@ -211,7 +222,7 @@ class NLParser(Parser):
             i3 = self.pročitaj(NL.IME)
             if i != i3:
                 raise SemantičkaGreška('nisu podržane različite varijable')
-        elif self >> NL.IME:
+        elif self >> NL.IME: # POSTINKREMENT ili +=
             i3 = self.zadnji
             if i != i3:
                 raise SemantičkaGreška('nisu podržane različite varijable')
@@ -229,6 +240,17 @@ class NLParser(Parser):
             blok = [self.naredba()]
         return Petlja(i, početak, usporedba, granica, inkrement, blok)
 
+    def ispis(self):
+        ispisi = []
+        novired = False
+        while self >> NL.MMANJE:
+            if self >> NL.IME: ispisi.append(self.zadnji)
+            elif self >> NL.ENDL:
+                novired = True
+                break
+        self.pročitaj(NL.TOČKAZAREZ)
+        return Ispis(ispisi, novired)
+
     def prekid(self):
         br = self.zadnji
         self.pročitaj(NL.TOČKAZAREZ)
@@ -243,6 +265,15 @@ class Program(AST('naredbe')):
         for naredba in self.naredbe:
                 naredba.izvrši(memorija)
 
+class Ispis(AST('ispisi novired')):
+    def izvrši(self, mem):
+        for ispis in self.ispisi: print(ispis.vrijednost(mem), end=' ')
+        if self.novired: print()
+
+
+class Pridruživanje(AST('ime pridruženo')):
+    def izvrši(self, mem):
+        mem[self.ime.sadržaj] = self.pridruženo.vrijednost(mem)
 
 if __name__ == '__main__':
     ulaz = '5 + 1++ && { } () - 6/7//ja sam linijski komentar\n'
@@ -267,8 +298,12 @@ if __name__ == '__main__':
     tokeni2 = list(nl_lex(ulaz2))
     print(*tokeni2)  # 'otpakirana' lista
 
-    ulaz3 = 'break;'
-    print(ulaz)
+    ulaz3 = '''
+        x = "5";  
+        cout << x << endl; 
+    '''
+
+    print(ulaz3)
 
     tokeni3 = list(nl_lex(ulaz3))
     nl = NLParser.parsiraj(tokeni3)
