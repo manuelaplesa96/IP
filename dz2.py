@@ -11,10 +11,18 @@
 from pj import *
 
 class NL(enum.Enum):
-	class STRING(Token): pass # string moze biti string kao tip i kao naziv varijable
-	class BROJ(Token): pass # broj je broj ili vrijednost varijable
-	class BREAK(Token): pass # za izlazak iz petlje breakom
-	class IME(Token): pass # imena varijabli
+	class STRING(Token):
+		def vrijednost(self, _): 
+			return self.sadržaj
+	class BROJ(Token): 
+		def vrijednost(self, _): 
+			return int(self.sadržaj)
+	class BREAK(Token): 
+		literal = 'break'
+		def izvrši(self, mem): raise Prekid
+	class IME(Token): 
+		def vrijednost(self, mem): 
+			return pogledaj(mem, self)
 	MANJE, VEĆE = '<>'
 	PPLUS = '++'
 	MJEDNAKO, VJEDNAKO, NJEDNAKO, JEDNAKO, PJEDNAKO = '<=', '>=', '!=', '==', '+='
@@ -34,6 +42,12 @@ def nl_lex(kod):
 		elif znak.isdigit():
 			lex.zvijezda(str.isdigit)
 			yield lex.token(NL.BROJ)
+		elif znak == '"':
+			lex.pročitaj_do('"')
+			yield lex.token(NL.STRING)
+		elif znak.isalpha():
+			lex.zvijezda(str.isalpha)
+			yield lex.literal(NL.IME)	
 		elif znak == '/': #višelinijski komentari /* */, linijski //
 			if lex.slijedi('/'):
 				lex.pročitaj_do('\n')
@@ -41,15 +55,9 @@ def nl_lex(kod):
 				lex.pročitaj_do('*')
 				if lex.slijedi('/'):
 					lex.zanemari()
-			else: yield lex.literal(NL.KROZ)
-		elif znak == '"':
-			lex.pročitaj_do('"')
-			yield lex.literal(NL.STRING)	
+			else: yield lex.literal(NL.KROZ)	
 		elif znak == '!':
-			if lex.slijedi('='):
-				yield lex.literal(NL.NJEDNAKO)
-			else:
-				yield lex.literal(NL.NEGACIJA)
+			yield lex.token(NL.NJEDNAKO if lex.slijedi('=') else NL.NEGACIJA)
 		elif znak == '<':
 			if lex.slijedi('='):
 				yield lex.literal(NL.MJEDNAKO)
@@ -63,26 +71,22 @@ def nl_lex(kod):
 				yield lex.literal(NL.VVEĆE)
 			else: yield lex.literal(NL.VEĆE)
 		elif znak == '=':
-			if lex.slijedi('='):
-				yield lex.literal(NL.JEDNAKO)
-			else: yield lex.literal(NL.PRIDRUŽI)
+			yield lex.token(NL.JEDNAKO if lex.slijedi('=') else NL.PRIDRUŽI)
 		elif znak == '+':
 			if lex.slijedi('='):
 				yield lex.literal(NL.PJEDNAKO)
 			if lex.slijedi('+'):
 				yield lex.literal(NL.PPLUS)
 			else: yield lex.literal(NL.PLUS)
-		elif znak.isalpha():
-			lex.zvijezda(str.isalpha)
-			yield lex.literal(NL.IME)
+
 		elif znak == '&':
 			if lex.slijedi('&'):
 				yield lex.literal(NL.AND)
-			else: raise lex.greška("Krivi unos!")
+			else: raise lex.greška("U ovom jeziku nema samostalnog &! Pokušaj sa &&!")
 		elif znak == '|':
 			if lex.slijedi('|'):
 				yield lex.literal(NL.OR)
-			else: raise lex.greška("Krivi unos!")
+			else: raise lex.greška("U ovom jeziku nema samostalnog |! Pokušaj sa ||!")
 		else: yield lex.literal(NL)
 
 
@@ -128,8 +132,14 @@ if __name__=='__main__':
 
 	print()
 
-	ulaz2 = 'for( i = 0; i < 10; i++ ){ if( i < 9 ) ispiši(i); else break; }'
-	#ulaz = 'if( i == 5 ) break;'
+	ulaz2 = '''
+		for( i = 0; i < 10; i++ ) {
+			if( i < 9 ) 
+				cout << i << endl;
+			else break; 
+		}
+		'''
+	
 	print(ulaz2)
 	
 	tokeni2 = list(nl_lex(ulaz2))
