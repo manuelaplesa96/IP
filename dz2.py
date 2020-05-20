@@ -88,11 +88,11 @@ def nl_lex(kod):
 
 
 ###Beskontekstna gramatika
-# start		-> naredba TOČKAZAREZ naredbe 
-# naredbe 	-> '' | naredba TOČKAZAREZ naredbe
+# start		-> naredba naredbe 
+# naredbe 	-> '' | naredba naredbe
 # naredba	-> pridruži | OOTV naredbe OZATV | petlja | grananje |
-#			   ispis | unos | BREAK | vrati | cast
-# pridruži	-> IME PRIDRUŽI ( BROJ | STRING ) | IME PRIDRUŽI izraz
+#			   ispis | unos | BREAK TOČKAZAREZ | vrati | cast
+# pridruži	-> IME PRIDRUŽI ( BROJ | STRING ) TOČKAZAREZ | IME PRIDRUŽI izraz TOČKAZAREZ
 # petlja	-> for naredba | for VOTV naredbe VZATV
 # for		-> FOR OOTV IME PRIDRUŽI BROJ TOČKAZAREZ IME ( MANJE | MJEDNAKO ) BROJ TOČKAZAREZ inkrement OZATV
 # inkrement	-> IME PPLUS | PPLUS IME | IME PJENDAKO BROJ 
@@ -103,16 +103,20 @@ def nl_lex(kod):
 # uvjet		-> (NEGACIJA | '' ) ( BROJ aritm BROJ | STRING str STRING ) | izraz aritm izraz
 # aritm		-> JEDNAKO | MJEDNAKO | VJEDNAKO | NJEDNAKO | MANJE | VEĆE
 # str 		-> JEDNAKO
-# izraz 	-> BROJ ( PLUS | MINUS | PUTA | KROZ ) BROJ | STRING PLUS STRING | BROJ
+# izraz 	-> BROJ ( PLUS | MINUS | PUTA | KROZ ) BROJ | STRING PLUS STRING | BROJ 
 # log 		-> AND | OR
-# ispis		-> COUT ispisi | COUT ispisi MMANJE ENDL
-# ispisi	-> '' | MMANJE IME ispisi
-# unos		-> CIN unosi | CIN unosi VVEĆE ENDL
+# ispis		-> COUT ispisi TOČKAZAREZ | COUT ispisi MMANJE ENDL TOČKAZAREZ
+# ispisi	-> '' | MMANJE IME ispisi TOČKAZAREZ
+# unos		-> CIN unosi TOČKAZAREZ | CIN unosi VVEĆE ENDL TOČKAZAREZ
 # unosi		-> '' | VVEĆE IME unosi
-# vrati		-> RETURN IME  ??? vraćanje polja
-# cast 		-> TOSTRING OOTV BROJ OZATV | TOINT OOTV STRING OZATV
+# vrati		-> RETURN IME TOČKAZAREZ  ??? vraćanje polja
+# cast 		-> TOSTRING OOTV BROJ OZATV TOČKAZAREZ | TOINT OOTV STRING OZATV TOČKAZAREZ
 
 
+##parsiranje
+
+	
+		
 
 if __name__=='__main__':
 	ulaz = '5 + 1++ && { } () - 6/7//ja sam linijski komentar\n'
