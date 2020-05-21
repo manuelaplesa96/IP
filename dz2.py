@@ -283,7 +283,7 @@ class NLParser(Parser):
             raise SemantičkaGreška('nisu podržane različite varijable')
         if self >> NL.MANJE:
             usporedba = self.zadnji
-        elif self >> NL.MJEDNAKO: #je li potrebno
+        elif self >> NL.MJEDNAKO: 
             usporedba = self.zadnji
         granica = self.pročitaj(NL.BROJ)
         self.pročitaj(NL.TOČKAZAREZ)
@@ -299,7 +299,7 @@ class NLParser(Parser):
                 raise SemantičkaGreška('nisu podržane različite varijable')
             elif self >> NL.PPLUS:
                 inkrement = nenavedeno
-            elif self >> NL.PJEDNAKO:
+            elif self >> NL.PJEDNAKO: #ne radi!
                 inkrement = self.pročitaj(NL.BROJ)
         self.pročitaj(NL.OZATV)
 
@@ -458,6 +458,30 @@ class Negacija(AST('ispod')):
     def vrijednost(self, env):
         return not self.ispod.vrijednost(env)
 
+class Petlja(AST('varijabla početak usporedba granica inkrement blok')):
+    def izvrši(self, mem):
+        kv = self.varijabla.sadržaj
+        mem[kv] = self.početak.vrijednost(mem)
+        usp = self.usporedba
+        if usp ^ NL.MANJE:
+            while mem[kv] < self.granica.vrijednost(mem):
+                try:
+                    for naredba in self.blok: naredba.izvrši(mem)
+                except Prekid: break
+                inkr = self.inkrement
+                if inkr is nenavedeno: inkr = 1
+                else: inkr = inkr.vrijednost(mem)
+                mem[kv] += inkr 
+        elif usp ^ NL.MJEDNAKO:
+            while mem[kv] <= self.granica.vrijednost(mem):
+                try:
+                    for naredba in self.blok: naredba.izvrši(mem)
+                except Prekid: break
+                inkr = self.inkrement
+                if inkr is nenavedeno: inkr = 1
+                else: inkr = inkr.vrijednost(mem)
+                mem[kv] += inkr
+
 
 if __name__ == '__main__':
     ulaz = '5 + 1++ && { } () - 6/7//ja sam linijski komentar\n'
@@ -470,18 +494,19 @@ if __name__ == '__main__':
     print()
 
     ulaz2 = '''
-        for( i = 0; i < 10; i++ ) {
-            if( i < 9 ) 
-                cout << i << endl;
-            else break; 
-        }
-        '''
+    for( i = 0; i <= 10; i++ ) {
+        //if( i < 9 ) \n
+            cout << i << endl;
+        //else break; \n
+    }
+    '''
 
     print(ulaz2)
 
     tokeni2 = list(nl_lex(ulaz2))
-    print(*tokeni2)  # 'otpakirana' lista
-
+    nl = NLParser.parsiraj(tokeni2)
+    print(nl)
+    nl.izvrši()
 
     ulaz3 = '''
         x = "kata" + "rina";  
