@@ -114,7 +114,7 @@ def nl_lex(kod):
 # for-> FOR OOTV IME PRIDRUŽI BROJ TOČKAZAREZ IME ( MANJE | MJEDNAKO ) BROJ TOČKAZAREZ inkrement OZATV
 # inkrement-> IME PPLUS | PPLUS IME | IME PJENDAKO BROJ
 # grananje-> ( IF | WHILE ) uvjet kod | IF uvjet kod ELSE kod |
-# DO kod WHILE uvjet
+#            DO kod WHILE uvjet
 # kod -> naredba | VOTV naredbe VZATV
 # uvjeti-> OOTV uvjet OZATV | ( NEGACIJA | ' ' ) OOTV uvjet OZATV log uvjeti.............nema
 # uvjet-> (NEGACIJA | '' ) ( BROJ aritm BROJ | STRING str STRING ) | izraz aritm izraz ##nije unutar zagrada
@@ -130,7 +130,7 @@ def nl_lex(kod):
 # cast -> TOSTRING OOTV BROJ OZATV TOČKAZAREZ | TOINT OOTV STRING OZATV TOČKAZAREZ
 
 
-# stabla: Program +, Petlja -, Grananje -, Blok, Ispis, Pridruživanje, Binarna +
+# stabla: Program +, Petlja -, IF_Grananje +, WHILE_Grananje, Blok, Ispis, Pridruživanje, Binarna +
 
 class NLParser(Parser):
     def start(self):
@@ -143,7 +143,9 @@ class NLParser(Parser):
         if self >> NL.FOR:
             return self.petlja()  # +
         elif self >> NL.IF:
-            return self.grananje()  # +
+            return self.if_grananje()  # +
+        elif self >> NL.WHILE:
+            return self.while_grananje()
         elif self >> NL.COUT:
             return self.ispis() # +
         elif self >> NL.BREAK:
@@ -160,17 +162,16 @@ class NLParser(Parser):
         self.pročitaj(NL.TOČKAZAREZ)
         return Pridruživanje(ime, pridruženo)
 
-    def grananje(self):
+    def if_grananje(self):
         self.pročitaj(NL.OOTV)
         if self >> NL.NEGACIJA:
             self.pročitaj(NL.OOTV)
             ispod = self.uvjet() # prvi uvjet negiran
             self.pročitaj(NL.OZATV)
             uvjet=Negacija(ispod) #dodamo taj prvi negirani uvjet
-        #elif self >> NL.OOTV: 
+ 
         else:    
             uvjet=self.uvjet() # dodamo taj prvi uvjet
-            #self.pročitaj(NL.OZATV)
         
         self.pročitaj(NL.OZATV)  # kraj uvjeta
 
@@ -191,7 +192,30 @@ class NLParser(Parser):
         else:
             else_blok = Blok([])  # izvrši prazan blok
 
-        return Grananje(uvjet, if_blok, else_blok)
+        return IF_Grananje(uvjet, if_blok, else_blok)
+
+
+    def while_grananje(self):
+        self.pročitaj(NL.OOTV)
+        if self >> NL.NEGACIJA:
+            self.pročitaj(NL.OOTV)
+            ispod = self.uvjet() # prvi uvjet negiran
+            self.pročitaj(NL.OZATV)
+            uvjet=Negacija(ispod) #dodamo taj prvi negirani uvjet
+ 
+        else:    
+            uvjet=self.uvjet() # dodamo taj prvi uvjet
+        
+        self.pročitaj(NL.OZATV)  # kraj uvjeta
+
+        if self >> NL.VOTV:  # blok naredbi
+            blok = []
+            while not self >> NL.VZATV:
+                blok.append(self.naredba())
+        else:
+            blok = [self.naredba()]
+
+        return WHILE_Grananje(uvjet, blok)
 
 # uvjet-> (NEGACIJA | '' ) ( BROJ aritm BROJ | STRING str STRING ) | izraz aritm izraz
     def uvjet(self):      
@@ -246,7 +270,6 @@ class NLParser(Parser):
                 drugi = self.pročitaj(NL.BROJ)
 
         return Uvjet(op,prvi,drugi)
-
             
     def petlja(self):
         self.pročitaj(NL.OOTV)  # već smo pročitali FOR
@@ -400,11 +423,21 @@ class Uvjet(AST('op lijevo desno')):
         except ArithmeticError as ex: o.problem(*ex.args)
 
 
-# samo uvjeti dubine 2 prolaze
-class Grananje(AST('uvjet if_blok else_blok')):
+class IF_Grananje(AST('uvjet if_blok else_blok')):
     def izvrši(self, mem):
-        uvjet = self.uvjet.vrijednost(mem)
-        print(uvjet)
+        if self.uvjet.vrijednost(mem):
+            for naredba in self.if_blok:
+                naredba.izvrši(mem)
+        else:
+            for naredba in self.else_blok:
+                naredba.izvrši(mem)
+
+class WHILE_Grananje(AST('uvjet blok')):
+    def izvrši(self, mem):
+        while self.uvjet.vrijednost(mem):
+            for naredba in self.blok:
+                naredba.izvrši(mem)
+        
         
 
    
@@ -464,10 +497,18 @@ if __name__ == '__main__':
     nl.izvrši()
 
     ulaz5 = '''
-        x = "nesto";
+        x = 5;
         y = 6;
-        if( x == "sstring" ) 
+        if( x > 6 ) 
+        {
+            x = 1;
             cout << x << endl;
+        }
+        else
+        {
+            x = x+1;
+            cout << x <<endl; 
+        }
       
     '''
 
@@ -478,5 +519,28 @@ if __name__ == '__main__':
     nl = NLParser.parsiraj(tokeni5)
     print(nl)
 
+    nl.izvrši()  
+
+
+
+    ulaz6 = '''
+        x = 5;
+        y = 6;
+        while(x<7)
+            x = x+1;
+        
+        cout << x <<endl;
+
+      
+    '''
+
+    print(ulaz6)
+
+    tokeni6 = list(nl_lex(ulaz6))
+    #print(*tokeni5)
+    nl = NLParser.parsiraj(tokeni6)
+    print(nl)
+
     nl.izvrši()    
+  
 
