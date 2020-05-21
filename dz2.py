@@ -108,8 +108,8 @@ def nl_lex(kod):
 # start-> naredba naredbe
 # naredbe -> '' | naredba naredbe
 # naredba-> pridruži | OOTV naredbe OZATV | petlja | grananje |
-#  ispis TOČKAZAREZ| unos | BREAK TOČKAZAREZ | vrati | cast
-# pridruži-> IME PRIDRUŽI ( BROJ | STRING ) TOČKAZAREZ | IME PRIDRUŽI izraz TOČKAZAREZ
+# ispis TOČKAZAREZ| unos | BREAK TOČKAZAREZ | vrati | cast
+# pridruži-> IME PRIDRUŽI izraz TOČKAZAREZ
 # petlja-> for naredba | for VOTV naredbe VZATV
 # for-> FOR OOTV IME PRIDRUŽI BROJ TOČKAZAREZ IME ( MANJE | MJEDNAKO ) BROJ TOČKAZAREZ inkrement OZATV
 # inkrement-> IME PPLUS | PPLUS IME | IME PJENDAKO BROJ
@@ -120,7 +120,7 @@ def nl_lex(kod):
 # uvjet-> (NEGACIJA | '' ) ( BROJ aritm BROJ | STRING str STRING ) | izraz aritm izraz
 # aritm-> JEDNAKO | MJEDNAKO | VJEDNAKO | NJEDNAKO | MANJE | VEĆE
 # str -> JEDNAKO
-# izraz-> BROJ ( PLUS | MINUS | PUTA | KROZ ) BROJ | STRING PLUS STRING | BROJ
+# izraz-> BROJ ( PLUS | MINUS | PUTA | KROZ ) BROJ | STRING PLUS STRING | BROJ | STRING
 # log -> AND | OR
 # ispis-> COUT ispisi | COUT ispisi MMANJE ENDL
 # ispisi-> '' | MMANJE IME ispisi 
@@ -157,9 +157,8 @@ class NLParser(Parser):
     def pridruživanje(self):
         ime = self.zadnji
         self.pročitaj(NL.PRIDRUŽI)
-        if self >> {NL.BROJ, NL.STRING}:
-            pridruženo = self.zadnji
-            self.pročitaj(NL.TOČKAZAREZ)
+        pridruženo = self.izraz()
+        self.pročitaj(NL.TOČKAZAREZ)
         return Pridruživanje(ime, pridruženo)
 
     def grananje(self): 
@@ -255,6 +254,30 @@ class NLParser(Parser):
         br = self.zadnji
         self.pročitaj(NL.TOČKAZAREZ)
         return br
+    
+    def izraz(self):
+        if self >> NL.BROJ:
+            prvi = self.zadnji
+            op = nenavedeno
+            if self >> {NL.PLUS, NL.MINUS, NL.PUTA, NL.KROZ}:
+                op = self.zadnji
+            if(op == nenavedeno):
+                return prvi
+            else:
+                drugi = self.pročitaj(NL.BROJ)
+                return Binarna(op, prvi, drugi)
+        elif self >> NL.STRING:
+            prvi = self.zadnji
+            op = nenavedeno
+            if self >> NL.PLUS:
+                op = self.zadnji
+            if(op == nenavedeno):
+                return prvi
+            else:
+                drugi = self.pročitaj(NL.STRING)
+                return Binarna(op, prvi, drugi)
+
+
 
 class Prekid(Exception): pass
 
@@ -274,6 +297,17 @@ class Ispis(AST('ispisi novired')):
 class Pridruživanje(AST('ime pridruženo')):
     def izvrši(self, mem):
         mem[self.ime.sadržaj] = self.pridruženo.vrijednost(mem)
+
+class Binarna(AST('op lijevo desno')):
+    def vrijednost(self, env):
+        o,x,y = self.op, self.lijevo.vrijednost(env), self.desno.vrijednost(env)
+        try:
+            if o ^ NL.PLUS: return x + y
+            elif o ^ NL.MINUS: return x - y
+            elif o ^ NL.PUTA: return x * y
+            elif o ^ NL.KROZ: return x / y
+            else: assert False, 'nepokriveni slučaj binarnog operatora' + str(o)
+        except ArithmeticError as ex: o.problem(*ex.args)
 
 if __name__ == '__main__':
     ulaz = '5 + 1++ && { } () - 6/7//ja sam linijski komentar\n'
@@ -299,9 +333,10 @@ if __name__ == '__main__':
     print(*tokeni2)  # 'otpakirana' lista
 
     ulaz3 = '''
-        x = "5";  
-        cout << "kata" << endl; 
+        x = "kata" + "rina";  
+        cout << x << endl; 
     '''
+    #ovo ispisuje "kata""rina", to treba popravit
 
     print(ulaz3)
 
@@ -310,4 +345,18 @@ if __name__ == '__main__':
     print(nl)
 
     nl.izvrši()
+
+    ulaz4 = '''
+        x = 3+2;
+        cout << x << endl;
+    '''
+
+    print(ulaz4)
+
+    tokeni4 = list(nl_lex(ulaz4))
+    nl = NLParser.parsiraj(tokeni4)
+    print(nl)
+
+    nl.izvrši()
+    
 
