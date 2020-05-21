@@ -400,7 +400,20 @@ class Pridruživanje(AST('ime pridruženo')):
 
 class Binarna(AST('op lijevo desno')):
     def vrijednost(self, env):
-        o,x,y = self.op, self.lijevo.vrijednost(env), self.desno.vrijednost(env)
+        o = self.op
+        if self.lijevo ^ NL.STRING:
+            lijevi_string = self.lijevo.vrijednost(env)
+            desni_string = self.desno.vrijednost(env)
+            len_lijevo = len(lijevi_string)
+            len_lijevo -= 1
+            final_lijevo = lijevi_string[:len_lijevo]  # string bez zadnjeg char-a (")
+            final_desno = desni_string[1:]  # string bez prvog char-a (")
+            try:
+                if o ^ NL.PLUS: return final_lijevo + final_desno
+                else: assert False, 'nepokriveni slučaj binarnog operatora' + str(o)
+            except ArithmeticError as ex: o.problem(*ex.args)
+        else:
+            x,y = self.lijevo.vrijednost(env), self.desno.vrijednost(env)
         try:
             if o ^ NL.PLUS: return x + y
             elif o ^ NL.MINUS: return x - y
@@ -469,16 +482,31 @@ if __name__ == '__main__':
     tokeni2 = list(nl_lex(ulaz2))
     print(*tokeni2)  # 'otpakirana' lista
 
+
     ulaz3 = '''
         x = "kata" + "rina";  
         cout << x << endl; 
     '''
-    #ovo ispisuje "kata""rina", to treba popravit
+    #ovo ispisuje "kata""rina", KATARINAAAAA! :)))
 
     print(ulaz3)
 
     tokeni3 = list(nl_lex(ulaz3))
     nl = NLParser.parsiraj(tokeni3)
+    print(nl)
+
+    nl.izvrši()
+
+    ulaz31 = '''
+	y = "rina";
+        x = "kata" + y;  
+        cout << x << endl; 
+    '''
+
+    print(ulaz31)
+
+    tokeni31 = list(nl_lex(ulaz31))
+    nl = NLParser.parsiraj(tokeni31)
     print(nl)
 
     nl.izvrši()
