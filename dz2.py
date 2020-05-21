@@ -105,32 +105,33 @@ def nl_lex(kod):
 
 
 # Beskontekstna gramatika
-# start-> naredba naredbe
-# naredbe -> '' | naredba naredbe
+# +start-> naredba naredbe
+# +naredbe -> '' | naredba naredbe
 # naredba-> pridruži | OOTV naredbe OZATV | petlja | grananje |
-# ispis TOČKAZAREZ| unos | BREAK TOČKAZAREZ | vrati | cast
-# pridruži-> IME PRIDRUŽI izraz TOČKAZAREZ
-# petlja-> for naredba | for VOTV naredbe VZATV
-# for-> FOR OOTV IME PRIDRUŽI BROJ TOČKAZAREZ IME ( MANJE | MJEDNAKO ) BROJ TOČKAZAREZ inkrement OZATV
+#            ispis TOČKAZAREZ| unos | BREAK TOČKAZAREZ | vrati | cast
+# +pridruži-> IME PRIDRUŽI izraz TOČKAZAREZ
+# +petlja-> for naredba | for VOTV naredbe VZATV
+# +for-> FOR OOTV IME PRIDRUŽI BROJ TOČKAZAREZ IME ( MANJE | MJEDNAKO ) BROJ TOČKAZAREZ inkrement OZATV
 # inkrement-> IME PPLUS | PPLUS IME | IME PJENDAKO BROJ
-# grananje-> ( IF | WHILE ) uvjet kod | IF uvjet kod ELSE kod |
+# +grananje-> ( IF | WHILE ) uvjet kod | IF uvjet kod ELSE kod |
 #            DO kod WHILE uvjet
-# kod -> naredba | VOTV naredbe VZATV
-# uvjeti-> OOTV uvjet OZATV | ( NEGACIJA | ' ' ) OOTV uvjet OZATV log uvjeti.............nema
-# uvjet-> (NEGACIJA | '' ) ( BROJ aritm BROJ | STRING str STRING ) | izraz aritm izraz ##nije unutar zagrada
-# aritm-> JEDNAKO | MJEDNAKO | VJEDNAKO | NJEDNAKO | MANJE | VEĆE
+# +kod -> naredba | VOTV naredbe VZATV
+# !!!uvjeti-> OOTV uvjet OZATV | ( NEGACIJA | ' ' ) OOTV uvjet OZATV log uvjeti.............nema
+# +uvjet-> (NEGACIJA | '' ) ( BROJ aritm BROJ | STRING str STRING ) | izraz aritm izraz ##nije unutar zagrada
+# +aritm-> JEDNAKO | MJEDNAKO | VJEDNAKO | NJEDNAKO | MANJE | VEĆE
 # str -> JEDNAKO
-# izraz-> ( BROJ | IME ) ( PLUS | MINUS | PUTA | KROZ ) ( BROJ | IME ) | (STRING | IME ) PLUS ( STRING | IME )  ##unutar zagrada
-# log -> AND | OR
-# ispis-> COUT ispisi | COUT ispisi MMANJE ENDL
-# ispisi-> '' | MMANJE IME ispisi 
-# unos-> CIN unosi TOČKAZAREZ | CIN unosi VVEĆE ENDL TOČKAZAREZ
+# +izraz-> ( BROJ | IME ) ( PLUS | MINUS | PUTA | KROZ ) ( BROJ | IME ) | (STRING | IME ) PLUS ( STRING | IME )  ##unutar zagrada
+# +log -> AND | OR
+# +ispis-> COUT ispisi | COUT ispisi MMANJE ENDL
+# +ispisi-> '' | MMANJE IME ispisi 
+# unos-> CIN unosi TOČKAZAREZ ( mislim da nema endl)
 # unosi-> '' | VVEĆE IME unosi
 # vrati-> RETURN IME TOČKAZAREZ  ??? vraćanje polja
 # cast -> TOSTRING OOTV BROJ OZATV TOČKAZAREZ | TOINT OOTV STRING OZATV TOČKAZAREZ
 
 
-# stabla: Program +, Petlja -, IF_Grananje +, WHILE_Grananje, Blok, Ispis, Pridruživanje, Binarna +
+# stabla: Program +, Petlja -, IF_Grananje +, WHILE_Grananje +, DO_Grananje +, Blok ?, Ispis +, Pridruživanje +, Binarna +
+
 
 class NLParser(Parser):
     def start(self):
@@ -145,13 +146,23 @@ class NLParser(Parser):
         elif self >> NL.IF:
             return self.if_grananje()  # +
         elif self >> NL.WHILE:
-            return self.while_grananje()
+            return self.while_grananje() # +
+        elif self >> NL.DO:
+            return self.do_grananje() # +
         elif self >> NL.COUT:
             return self.ispis() # +
         elif self >> NL.BREAK:
             return self.prekid()  # +
         elif self >> NL.IME:
             return self.pridruživanje() #+
+        elif self >> NL.CIN:
+            return self.unos() # -
+        #elif self >> NL.RETURN:
+        #    return self.vrati() # -
+        #elif self >> NL.TOINT:
+        #    return self.castInt() # -
+        #elif self >> NL.TOSTRING:
+        #    return self.castString() # -
         else:
             raise self.greška()
     
@@ -216,6 +227,28 @@ class NLParser(Parser):
             blok = [self.naredba()]
 
         return WHILE_Grananje(uvjet, blok)
+
+    def do_grananje(self):
+        self.pročitaj(NL.VOTV)  # blok naredbi
+        blok = []
+        while not self >> NL.VZATV:
+            blok.append(self.naredba())
+        #else:
+        #    blok = [self.naredba()]
+        
+        self.pročitaj(NL.WHILE)
+        self.pročitaj(NL.OOTV)
+        if self >> NL.NEGACIJA:
+            self.pročitaj(NL.OOTV)
+            ispod = self.uvjet() # prvi uvjet negiran
+            self.pročitaj(NL.OZATV)
+            uvjet=Negacija(ispod) #dodamo taj prvi negirani uvjet
+        else:    
+            uvjet=self.uvjet() # dodamo taj prvi uvjet
+        
+        self.pročitaj(NL.OZATV)  # kraj uvjeta
+
+        return DO_Grananje(uvjet, blok)
 
 # uvjet-> (NEGACIJA | '' ) ( BROJ aritm BROJ | STRING str STRING ) | izraz aritm izraz
     def uvjet(self):      
@@ -377,6 +410,22 @@ class NLParser(Parser):
                 return Binarna(op, prvi, drugi)
             
 
+
+    def unos(self):
+        unosi = []
+        while self >> NL.VVEĆE:
+            if self >> NL.IME: unosi.append(self.zadnji)
+        self.pročitaj(NL.TOČKAZAREZ)
+        return Unos(unosi)
+            
+
+    #def vrati(self):
+         
+    #def castInt(self):
+
+    #def castString(self):
+
+
 class Prekid(Exception): pass
 
 class Blok(AST('blok')):
@@ -392,6 +441,11 @@ class Ispis(AST('ispisi novired')):
     def izvrši(self, mem):
         for ispis in self.ispisi: print(ispis.vrijednost(mem), end=' ')
         if self.novired: print()
+
+class Unos(AST('unosi')):
+    def izvrši(self, mem):
+        for unos in self.unosi:
+            Pridruživanje(unos,input())
 
 
 class Pridruživanje(AST('ime pridruženo')):
@@ -450,10 +504,15 @@ class WHILE_Grananje(AST('uvjet blok')):
         while self.uvjet.vrijednost(mem):
             for naredba in self.blok:
                 naredba.izvrši(mem)
-        
-        
 
-   
+class DO_Grananje(AST('uvjet blok')):
+    def izvrši(self, mem):
+        while 1:
+            for naredba in self.blok:
+                naredba.izvrši(mem)
+            if not self.uvjet.vrijednost(mem):
+                break;       
+          
 class Negacija(AST('ispod')):
     def vrijednost(self, env):
         return not self.ispod.vrijednost(env)
@@ -583,7 +642,6 @@ if __name__ == '__main__':
             x = x+1;
         
         cout << x <<endl;
-
       
     '''
 
@@ -595,5 +653,33 @@ if __name__ == '__main__':
     print(nl)
 
     nl.izvrši()    
-  
 
+    ulaz7 = '''
+        i=0;
+        do
+        {
+            cout << i << i <<endl;
+            i = i+1;
+        }
+        while(i<6)
+    '''
+
+    print(ulaz7)
+    tokeni7 = list(nl_lex(ulaz7))
+    #print(*tokeni5)
+    nl = NLParser.parsiraj(tokeni7)
+    print(nl)
+    nl.izvrši()    
+
+
+    ulaz8 = '''
+        //cin >> x;
+        //return x;
+    '''
+
+    print(ulaz8)
+    tokeni8 = list(nl_lex(ulaz8))
+    #print(*tokeni5)
+    nl = NLParser.parsiraj(tokeni8)
+    print(nl)
+    nl.izvrši()    
