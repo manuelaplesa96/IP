@@ -195,16 +195,18 @@ class NLParser(Parser):
 
 # uvjet-> (NEGACIJA | '' ) ( BROJ aritm BROJ | STRING str STRING ) | izraz aritm izraz
     def uvjet(self):      
-        if self >> NL.BROJ: # broj == broj & broj == izraz
+        if self >> NL.BROJ: 
             prvi = self.zadnji
             if self >> {NL.JEDNAKO, NL.NJEDNAKO, NL.MJEDNAKO, NL.MANJE, NL.VJEDNAKO, NL.VEĆE}:
                 op = self.zadnji
             
-            if self >> NL.OOTV:
+            if self >> NL.OOTV: # broj == izraz -
                 drugi = self.izraz()
                 self.pročitaj(NL.OZATV)
+            elif self >> NL.IME: ## pretp da je ime broja broj == ime +
+                drugi = self.zadnji
             else:
-                drugi = self.pročitaj(NL.BROJ)
+                drugi = self.pročitaj(NL.BROJ) # broj == broj +
         elif self >> NL.STRING: # string == string 
             prvi = self.zadnji
             if self >> NL.JEDNAKO:
@@ -214,16 +216,32 @@ class NLParser(Parser):
             #    drugi = self.izraz()
             #    self.pročitaj(NL.OZATV)
             #else:
-            drugi = self.pročitaj(NL.STRING)
+            if self >> NL.IME:
+                drugi = self.zadnji
+            else:
+                drugi = self.pročitaj(NL.STRING)
+        elif self >> NL.IME: ## pretpostavimo da je cast obavljen ako je ime string ili je koristeno samo jednakost
+            prvi = self.zadnji
+            if self >> {NL.NJEDNAKO, NL.MJEDNAKO, NL.MANJE, NL.VJEDNAKO, NL.VEĆE, NL.JEDNAKO}:
+                op = self.zadnji
+            
+            if self >> NL.OOTV:
+                drugi = self.izraz()
+                self.pročitaj(NL.OZATV)
+            elif self >> NL.BROJ:
+                drugi = self.zadnji
+            else:
+                drugi = self.pročitaj(NL.STRING)
+            
         elif self >> NL.OOTV: # izraz==izraz, izraz==broj
             prvi = self.izraz()
-            self.pročitaj(NL.OZATV)
+            #self.pročitaj(NL.OZATV)
             #if self >> {NL.JEDNAKO, NL.NJEDNAKO, NL.MJEDNAKO, NL.MANJE, NL.VJEDNAKO, NL.VEĆE}:
             #    op = self.zadnji
             
             if self >> NL.OOTV:
                 drugi = self.izraz()
-                self.pročitaj(NL.OZATV)
+                #self.pročitaj(NL.OZATV)
             else:
                 drugi = self.pročitaj(NL.BROJ)
 
@@ -288,14 +306,15 @@ class NLParser(Parser):
 
 # izraz-> ( BROJ | IME ) ( PLUS | MINUS | PUTA | KROZ ) ( BROJ | IME ) | (STRING | IME ) PLUS ( STRING | IME ) | BROJ | STRING     
     def izraz(self):
-        if self >> NL.BROJ: # broj+broj & broj+ime
+        if self >> NL.BROJ: # broj+broj 
             prvi = self.zadnji
+            
             op = nenavedeno
             if self >> {NL.PLUS, NL.MINUS, NL.PUTA, NL.KROZ}:
                 op = self.zadnji
-            if(op == nenavedeno):
+            if(op == nenavedeno): # broj
                 return prvi
-            elif self >> NL.IME:
+            elif self >> NL.IME: # broj+ime
                 drugi = self.zadnji
                 return Binarna(op, prvi, drugi)
             else:
@@ -306,7 +325,7 @@ class NLParser(Parser):
             op = nenavedeno
             if self >> NL.PLUS:
                 op = self.zadnji
-            if(op == nenavedeno):
+            if(op == nenavedeno): # string
                 return prvi
             elif self >> NL.IME:
                 drugi = self.zadnji
@@ -317,17 +336,21 @@ class NLParser(Parser):
         elif self >> NL.IME: # ime+broj & ime+string & ime+ime ......napravljeno da podrazumijevamo da osoba zna da
                              # string ima samo +  (i da ne može ići string + broj i broj + string bez prethodnog castanja)
             prvi = self.zadnji
+        
             op = nenavedeno
             if self >> {NL.PLUS, NL.MINUS, NL.PUTA, NL.KROZ}:
                 op = self.zadnji
-                
+              
             if(op == nenavedeno):
                 return prvi
             elif self >> NL.IME:
-                drugi = self.zadnji.vrijednost()
-                return Binarna(op, prvi, drugi)
-            else: # vjerujemo da osoba pazi da string ima samo +
                 drugi = self.zadnji
+                return Binarna(op, prvi, drugi)
+            elif self >> NL.BROJ: # vjerujemo da osoba pazi da string ima samo +
+                drugi = self.zadnji
+                return Binarna(op, prvi, drugi)
+            else:
+                drugi = self.pročitaj(NL.STRING)
                 return Binarna(op, prvi, drugi)
             
 
@@ -378,9 +401,10 @@ class Uvjet(AST('op lijevo desno')):
 
 
 # samo uvjeti dubine 2 prolaze
-class Grananje(AST('uvjeti if_blok else_blok')):
+class Grananje(AST('uvjet if_blok else_blok')):
     def izvrši(self, mem):
-        pass
+        uvjet = self.uvjet.vrijednost(mem)
+        print(uvjet)
         
 
    
@@ -440,8 +464,9 @@ if __name__ == '__main__':
     nl.izvrši()
 
     ulaz5 = '''
-        x = 5;
-        if( 5 < 9) 
+        x = "nesto";
+        y = 6;
+        if( x == "sstring" ) 
             cout << x << endl;
       
     '''
@@ -449,6 +474,7 @@ if __name__ == '__main__':
     print(ulaz5)
 
     tokeni5 = list(nl_lex(ulaz5))
+    #print(*tokeni5)
     nl = NLParser.parsiraj(tokeni5)
     print(nl)
 
