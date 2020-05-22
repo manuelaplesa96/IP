@@ -37,6 +37,7 @@ class NL(enum.Enum):
     FOR, IF, ELSE, WHILE, DO = 'for', 'if', 'else', 'while', 'do'
     AND, OR = '&&', '||'
     TOSTRING, TOINT = 'toStr', 'toInt'
+    RETURN = 'return'
 
 
 def nl_lex(kod):
@@ -87,7 +88,6 @@ def nl_lex(kod):
                 yield lex.literal(NL.PPLUS)
             else:
                 yield lex.literal(NL.PLUS)
-
         elif znak == '&':
             if lex.slijedi('&'):
                 yield lex.literal(NL.AND)
@@ -157,8 +157,11 @@ class NLParser(Parser):
             return self.pridruživanje() #+
         elif self >> NL.CIN:
             return self.unos() # -
-        #elif self >> NL.RETURN:
-        #    return self.vrati() # -
+        #elif self >> NL.RETURN: nisan ovo dobro
+            #if self >> {NL.BROJ, NL.STRING, NL.IME}: 
+             #   što = self.zadnji
+             #   self.pročitaj(NL.TOČKAZAREZ)
+             #   Vrati(što)
         #elif self >> NL.TOINT:
         #    return self.castInt() # -
         #elif self >> NL.TOSTRING:
@@ -226,7 +229,7 @@ class NLParser(Parser):
         else:
             blok = [self.naredba()]
 
-        return WHILE_Grananje(uvjet, blok)
+        return WHILE_Petlja(uvjet, blok)
 
     def do_grananje(self):
         self.pročitaj(NL.VOTV)  # blok naredbi
@@ -248,7 +251,7 @@ class NLParser(Parser):
         
         self.pročitaj(NL.OZATV)  # kraj uvjeta
 
-        return DO_Grananje(uvjet, blok)
+        return DO_Petlja(uvjet, blok)
 
 # uvjet-> (NEGACIJA | '' ) ( BROJ aritm BROJ | STRING str STRING ) | izraz aritm izraz
     def uvjet(self):      
@@ -418,8 +421,6 @@ class NLParser(Parser):
         self.pročitaj(NL.TOČKAZAREZ)
         return Unos(unosi)
             
-
-    #def vrati(self):
          
     #def castInt(self):
 
@@ -430,6 +431,9 @@ class Prekid(Exception): pass
 
 class Blok(AST('blok')):
     pass
+
+#class Vrati(AST('što')):
+   # def izvrši(self, mem): raise Povratak(self.što.vrijednost(mem))
 
 class Program(AST('naredbe')):
     def izvrši(self):
@@ -499,13 +503,13 @@ class IF_Grananje(AST('uvjet if_blok else_blok')):
             for naredba in self.else_blok:
                 naredba.izvrši(mem)
 
-class WHILE_Grananje(AST('uvjet blok')):
+class WHILE_Petlja(AST('uvjet blok')):
     def izvrši(self, mem):
         while self.uvjet.vrijednost(mem):
             for naredba in self.blok:
                 naredba.izvrši(mem)
 
-class DO_Grananje(AST('uvjet blok')):
+class DO_Petlja(AST('uvjet blok')):
     def izvrši(self, mem):
         while 1:
             for naredba in self.blok:
@@ -673,7 +677,7 @@ if __name__ == '__main__':
 
 
     ulaz8 = '''
-        //cin >> x;
+	//cin >> x;
         //return x;
     '''
 
