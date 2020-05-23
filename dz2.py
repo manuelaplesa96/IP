@@ -203,8 +203,8 @@ class NLParser(Parser):
                     else_blok.append(self.naredba())
             else:
                 else_blok = [self.naredba()]
-        else:
-            else_blok = Blok([])  # izvrši prazan blok
+        #else:
+            #else_blok = Blok([])  # izvrši prazan blok
 
         return IF_Grananje(uvjet, if_blok, else_blok)
 
@@ -250,6 +250,7 @@ class NLParser(Parser):
             uvjet=self.uvjet() # dodamo taj prvi uvjet
         
         self.pročitaj(NL.OZATV)  # kraj uvjeta
+        self.pročitaj(NL.TOČKAZAREZ) #kraj naredbe
 
         return DO_Petlja(uvjet, blok)
 
@@ -449,7 +450,12 @@ class Ispis(AST('ispisi novired')):
 class Unos(AST('unosi')):
     def izvrši(self, mem):
         for unos in self.unosi:
-            Pridruživanje(unos,input())
+            novavar = input() #on automatski napravi str od unosa
+            if novavar.isdigit():
+                novibroj = int(novavar)
+                mem[unos.sadržaj] = novibroj
+            else:
+                mem[unos.sadržaj] = novavar
 
 
 class Pridruživanje(AST('ime pridruženo')):
@@ -457,11 +463,11 @@ class Pridruživanje(AST('ime pridruženo')):
         mem[self.ime.sadržaj] = self.pridruženo.vrijednost(mem)
 
 class Binarna(AST('op lijevo desno')):
-    def vrijednost(self, env):
+    def vrijednost(self, mem):
         o = self.op
         if self.lijevo ^ NL.STRING:
-            lijevi_string = self.lijevo.vrijednost(env)
-            desni_string = self.desno.vrijednost(env)
+            lijevi_string = self.lijevo.vrijednost(mem)
+            desni_string = self.desno.vrijednost(mem)
             len_lijevo = len(lijevi_string)
             len_lijevo -= 1
             final_lijevo = lijevi_string[:len_lijevo]  # string bez zadnjeg char-a (")
@@ -471,7 +477,7 @@ class Binarna(AST('op lijevo desno')):
                 else: assert False, 'nepokriveni slučaj binarnog operatora' + str(o)
             except ArithmeticError as ex: o.problem(*ex.args)
         else:
-            x,y = self.lijevo.vrijednost(env), self.desno.vrijednost(env)
+            x,y = self.lijevo.vrijednost(mem), self.desno.vrijednost(mem)
         try:
             if o ^ NL.PLUS: return x + y
             elif o ^ NL.MINUS: return x - y
@@ -481,8 +487,8 @@ class Binarna(AST('op lijevo desno')):
         except ArithmeticError as ex: o.problem(*ex.args)
 
 class Uvjet(AST('op lijevo desno')):
-    def vrijednost(self, env):
-        o,x,y = self.op, self.lijevo.vrijednost(env), self.desno.vrijednost(env)
+    def vrijednost(self, mem):
+        o,x,y = self.op, self.lijevo.vrijednost(mem), self.desno.vrijednost(mem)
         try:
             if o ^ NL.JEDNAKO: return x == y
             elif o ^ NL.NJEDNAKO: return x != y
@@ -518,8 +524,8 @@ class DO_Petlja(AST('uvjet blok')):
                 break;       
           
 class Negacija(AST('ispod')):
-    def vrijednost(self, env):
-        return not self.ispod.vrijednost(env)
+    def vrijednost(self, mem):
+        return not self.ispod.vrijednost(mem)
 
 class Petlja(AST('varijabla početak usporedba granica inkrement blok')):
     def izvrši(self, mem):
@@ -664,8 +670,7 @@ if __name__ == '__main__':
         {
             cout << i << i <<endl;
             i = i+1;
-        }
-        while(i<6)
+        }while(i<6);
     '''
 
     print(ulaz7)
@@ -677,8 +682,8 @@ if __name__ == '__main__':
 
 
     ulaz8 = '''
-	//cin >> x;
-        //return x;
+	cin >> novavar;
+        cout << novavar;
     '''
 
     print(ulaz8)
@@ -686,4 +691,8 @@ if __name__ == '__main__':
     #print(*tokeni5)
     nl = NLParser.parsiraj(tokeni8)
     print(nl)
-    nl.izvrši()    
+    nl.izvrši()  
+
+
+
+  
