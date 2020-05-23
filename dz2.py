@@ -84,7 +84,7 @@ def nl_lex(kod):
         elif znak == '+':
             if lex.slijedi('='):
                 yield lex.literal(NL.PJEDNAKO)
-            if lex.slijedi('+'):
+            elif lex.slijedi('+'):
                 yield lex.literal(NL.PPLUS)
             else:
                 yield lex.literal(NL.PLUS)
@@ -112,7 +112,7 @@ def nl_lex(kod):
 # +pridruži-> IME PRIDRUŽI izraz TOČKAZAREZ
 # +petlja-> for naredba | for VOTV naredbe VZATV
 # +for-> FOR OOTV IME PRIDRUŽI BROJ TOČKAZAREZ IME ( MANJE | MJEDNAKO ) BROJ TOČKAZAREZ inkrement OZATV
-# inkrement-> IME PPLUS | PPLUS IME | IME PJENDAKO BROJ
+# inkrement-> IME PPLUS | PPLUS IME | IME PJEDNAKO BROJ
 # +grananje-> ( IF | WHILE ) uvjet kod | IF uvjet kod ELSE kod |
 #            DO kod WHILE uvjet
 # +kod -> naredba | VOTV naredbe VZATV
@@ -171,11 +171,16 @@ class NLParser(Parser):
     
     def pridruživanje(self):
         ime = self.zadnji
-        self.pročitaj(NL.PRIDRUŽI)
-        pridruženo = self.izraz()
-        self.pročitaj(NL.TOČKAZAREZ)
-        return Pridruživanje(ime, pridruženo)
-
+        if self >> {NL.PRIDRUŽI, NL.PJEDNAKO}:
+            operator = self.zadnji
+            pridruženo = self.izraz()
+            self.pročitaj(NL.TOČKAZAREZ)
+            return Pridruživanje(ime, pridruženo, operator)
+        elif self >> NL.PPLUS: #postinkrement
+            operator = self.zadnji
+            self.pročitaj(NL.TOČKAZAREZ)
+            return Pridruživanje(ime, nenavedeno, operator)
+        
     def if_grananje(self):
         self.pročitaj(NL.OOTV)
         if self >> NL.NEGACIJA:
@@ -336,7 +341,7 @@ class NLParser(Parser):
                 raise SemantičkaGreška('nisu podržane različite varijable')
             elif self >> NL.PPLUS:
                 inkrement = nenavedeno
-            elif self >> NL.PJEDNAKO: #ne radi!
+            elif self >> NL.PJEDNAKO: 
                 inkrement = self.pročitaj(NL.BROJ)
         self.pročitaj(NL.OZATV)
 
@@ -458,9 +463,14 @@ class Unos(AST('unosi')):
                 mem[unos.sadržaj] = novavar
 
 
-class Pridruživanje(AST('ime pridruženo')):
+class Pridruživanje(AST('ime pridruženo operator')):
     def izvrši(self, mem):
-        mem[self.ime.sadržaj] = self.pridruženo.vrijednost(mem)
+        if self.operator ^ NL.PRIDRUŽI:
+            mem[self.ime.sadržaj] = self.pridruženo.vrijednost(mem)
+        elif self.operator ^ NL.PJEDNAKO:
+            mem[self.ime.sadržaj] += self.pridruženo.vrijednost(mem)
+        elif self.operator ^ NL.PPLUS:
+            mem[self.ime.sadržaj] = mem[self.ime.sadržaj] +1
 
 class Binarna(AST('op lijevo desno')):
     def vrijednost(self, mem):
@@ -563,7 +573,7 @@ if __name__ == '__main__':
     print()
 
     ulaz2 = '''
-    for( i = 0; i <= 10; i++ ) {
+    for( i = 0; i <= 10; i+=2 ) {
         //if( i < 9 ) \n
             cout << i << endl;
         //else break; \n
@@ -665,7 +675,7 @@ if __name__ == '__main__':
     nl.izvrši()    
 
     ulaz7 = '''
-        i=0;
+        i=0; 
         do
         {
             cout << i << i <<endl;
@@ -691,7 +701,22 @@ if __name__ == '__main__':
     #print(*tokeni5)
     nl = NLParser.parsiraj(tokeni8)
     print(nl)
-    nl.izvrši()  
+    nl.izvrši()   
+
+    ulaz9 = '''
+        i=1;
+	i+=1;
+        cout << i << endl;
+        i++;
+        cout << i << endl;
+    '''
+
+    print(ulaz9)
+    tokeni9 = list(nl_lex(ulaz9))
+    #print(*tokeni5)
+    nl = NLParser.parsiraj(tokeni9)
+    print(nl)
+    nl.izvrši()   
 
 
 
