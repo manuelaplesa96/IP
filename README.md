@@ -3,8 +3,6 @@
 ## Još treba:
 
 * višemjesnost operacija
-* return
-* optimizirati
 * primeri i dokumentacija neka
 
 
