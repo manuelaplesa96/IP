@@ -14,6 +14,9 @@ from pj import *
 class NL(enum.Enum):
     class STRING(Token):
         def vrijednost(self, _):
+            #s_navodnicima = self.sadržaj
+            #sadrzaj = s_navodnicima[1:-1]
+            #return sadrzaj
             return self.sadržaj
 
     class BROJ(Token):
@@ -534,7 +537,13 @@ class Program(AST('naredbe')):
 
 class Ispis(AST('ispisi novired')):
     def izvrši(self, mem):
-        for ispis in self.ispisi: print(ispis.vrijednost(mem), end=' ')
+        for ispis in self.ispisi:
+            if isinstance(ispis.vrijednost(mem), str): #string cuvaj s " " a ispisuj ga bez
+                #if ispis.vrijednost(mem)[:1] == '"': #ako pocinje s navodnicima - nije dobro ako je trenutni int
+                bez_navodnika = ispis.vrijednost(mem)[1:-1]
+                print(bez_navodnika, end=' ')
+            else:
+                print(ispis.vrijednost(mem), end=' ')
         if self.novired: print()
 
 class Unos(AST('unosi')):
