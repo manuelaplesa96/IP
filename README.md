@@ -1,5 +1,12 @@
 # IP
 
+## Još treba:
+
+* višemjesnost operacija
+* return
+* optimizirati
+* primeri i dokumentacija neka
+
 
 ## Upute lekser
 
@@ -65,6 +72,8 @@ Podržan je postinkrement i predinkrement (?), tj. j++ te ++j će davati novu vr
        PJEDNAKO = '+='
 
 (NOVO) dodana klasa IME za imena varijabli
+
+
 
 
 

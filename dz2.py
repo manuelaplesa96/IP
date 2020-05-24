@@ -112,26 +112,26 @@ def nl_lex(kod):
 # +pridruži-> IME PRIDRUŽI izraz TOČKAZAREZ
 # +petlja-> for naredba | for VOTV naredbe VZATV
 # +for-> FOR OOTV IME PRIDRUŽI BROJ TOČKAZAREZ IME ( MANJE | MJEDNAKO | VEĆE | VJEDNAKO ) BROJ TOČKAZAREZ inkrement OZATV
-# inkrement-> IME PPLUS | PPLUS IME | IME PJEDNAKO BROJ
+# +inkrement-> IME PPLUS | PPLUS IME | IME PJEDNAKO BROJ
 # +grananje-> ( IF | WHILE ) uvjet kod | IF uvjet kod ELSE kod |
 #            DO kod WHILE uvjet
 # +kod -> naredba | VOTV naredbe VZATV
 # !!!uvjeti-> OOTV uvjet OZATV | ( NEGACIJA | ' ' ) OOTV uvjet OZATV log uvjeti.............nema
 # +uvjet-> (NEGACIJA | '' ) ( BROJ aritm BROJ | STRING str STRING ) | izraz aritm izraz ##nije unutar zagrada
 # +aritm-> JEDNAKO | MJEDNAKO | VJEDNAKO | NJEDNAKO | MANJE | VEĆE
-# str -> JEDNAKO
+# +str -> JEDNAKO
 # +izraz-> ( BROJ | IME ) ( PLUS | MINUS | PUTA | KROZ ) ( BROJ | IME ) | (STRING | IME ) PLUS ( STRING | IME )  ##unutar zagrada
 # +log -> AND | OR
 # +ispis-> COUT ispisi | COUT ispisi MMANJE ENDL
 # +ispisi-> '' | MMANJE IME ispisi 
-# unos-> CIN unosi TOČKAZAREZ ( mislim da nema endl)
-# unosi-> '' | VVEĆE IME unosi
+# +unos-> CIN unosi TOČKAZAREZ ( mislim da nema endl)
+# +unosi-> '' | VVEĆE IME unosi
 # vrati-> RETURN IME TOČKAZAREZ  ??? vraćanje polja
 # +cast -> TOSTRING OOTV IME, ( BROJ | IME ) OZATV TOČKAZAREZ | TOINT OOTV IME, (STRING | IME) OZATV TOČKAZAREZ
 
 
 
-# stabla: Program +, Petlja -, IF_Grananje +, WHILE_Grananje +, DO_Grananje +, Blok ?, Ispis +, Pridruživanje +, Binarna +
+# stabla: Program +, Petlja +, IF_Grananje +, WHILE_Grananje +, DO_Grananje +, Blok ?, Ispis +, Pridruživanje +, Binarna +
 
 
 class NLParser(Parser):
@@ -219,8 +219,8 @@ class NLParser(Parser):
                     else_blok.append(self.naredba())
             else:
                 else_blok = [self.naredba()]
-        #else:
-            #else_blok = Blok([])  # izvrši prazan blok
+        else:
+            else_blok = Blok([])  # izvrši prazan blok
 
         return IF_Grananje(uvjet, if_blok, else_blok)
 
@@ -270,7 +270,6 @@ class NLParser(Parser):
 
         return DO_Petlja(uvjet, blok)
 
-# uvjet-> (NEGACIJA | '' ) ( BROJ aritm BROJ | STRING str STRING ) | izraz aritm izraz
     def uvjet(self):      
         if self >> NL.BROJ: 
             prvi = self.zadnji
@@ -302,23 +301,25 @@ class NLParser(Parser):
             if self >> {NL.NJEDNAKO, NL.MJEDNAKO, NL.MANJE, NL.VJEDNAKO, NL.VEĆE, NL.JEDNAKO}:
                 op = self.zadnji
             
-            if self >> NL.OOTV:
+            if self >> NL.OOTV: # ime == izraz
                 drugi = self.izraz()
                 self.pročitaj(NL.OZATV)
-            elif self >> NL.BROJ:
+            elif self >> NL.BROJ: # ime == broj
                 drugi = self.zadnji
-            else:
-                drugi = self.pročitaj(NL.STRING)
+            elif self >> NL.STRING: #ime == string
+                drugi = self.zadnji
+            else: # ime == ime
+                drugi = self.pročitaj(NL.IME)
             
         elif self >> NL.OOTV: # izraz==izraz, izraz==broj
             prvi = self.izraz()
-            #self.pročitaj(NL.OZATV)
-            #if self >> {NL.JEDNAKO, NL.NJEDNAKO, NL.MJEDNAKO, NL.MANJE, NL.VJEDNAKO, NL.VEĆE}:
-            #    op = self.zadnji
+            self.pročitaj(NL.OZATV)
+            if self >> {NL.JEDNAKO, NL.NJEDNAKO, NL.MJEDNAKO, NL.MANJE, NL.VJEDNAKO, NL.VEĆE}:
+                op = self.zadnji
             
             if self >> NL.OOTV:
                 drugi = self.izraz()
-                #self.pročitaj(NL.OZATV)
+                self.pročitaj(NL.OZATV)
             else:
                 drugi = self.pročitaj(NL.BROJ)
 
@@ -377,8 +378,7 @@ class NLParser(Parser):
         br = self.zadnji
         self.pročitaj(NL.TOČKAZAREZ)
         return br
-
-# izraz-> ( BROJ | IME ) ( PLUS | MINUS | PUTA | KROZ ) ( BROJ | IME ) | (STRING | IME ) PLUS ( STRING | IME ) | BROJ | STRING     
+    
     def izraz(self):
         if self >> NL.MINUS: # broj+broj 
             op = self.zadnji
@@ -706,7 +706,7 @@ if __name__ == '__main__':
     ulaz5 = '''
         x = 5;
         y = 6;
-        if( x > 6 ) 
+        if( (x+1) > (6+x) ) 
         {
             x = 1;
             cout << x << endl;
@@ -815,7 +815,9 @@ if __name__ == '__main__':
     ulaz11 = ''' 
     y = -15+2;
     z = 15<2;
-    if(!(y>z)) cout << "y je manji od z:";
+    if(y>z) 
+        cout << "y je manji od z:";
+
     cout << y << z << endl;
     '''
 
@@ -824,5 +826,5 @@ if __name__ == '__main__':
     #print(*tokeni5)
     nl = NLParser.parsiraj(tokeni)
     print(nl)
-    nl.izvrši() 
+    #nl.izvrši() 
 
