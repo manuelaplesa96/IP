@@ -107,7 +107,7 @@ def nl_lex(kod):
 # Beskontekstna gramatika
 # +start-> naredba naredbe
 # +naredbe -> '' | naredba naredbe
-# naredba-> pridruži | OOTV naredbe OZATV | petlja | grananje |
+# naredba-> pridruži | postinkrement | OOTV naredbe OZATV | petlja | grananje |
 #            ispis TOČKAZAREZ| unos | BREAK TOČKAZAREZ | vrati | cast
 # +pridruži-> IME PRIDRUŽI izraz TOČKAZAREZ
 # +petlja-> for naredba | for VOTV naredbe VZATV
@@ -127,7 +127,8 @@ def nl_lex(kod):
 # unos-> CIN unosi TOČKAZAREZ ( mislim da nema endl)
 # unosi-> '' | VVEĆE IME unosi
 # vrati-> RETURN IME TOČKAZAREZ  ??? vraćanje polja
-# cast -> TOSTRING OOTV BROJ OZATV TOČKAZAREZ | TOINT OOTV STRING OZATV TOČKAZAREZ
+# +cast -> TOSTRING OOTV IME, ( BROJ | IME ) OZATV TOČKAZAREZ | TOINT OOTV IME, (STRING | IME) OZATV TOČKAZAREZ
+
 
 
 # stabla: Program +, Petlja -, IF_Grananje +, WHILE_Grananje +, DO_Grananje +, Blok ?, Ispis +, Pridruživanje +, Binarna +
@@ -162,10 +163,12 @@ class NLParser(Parser):
              #   što = self.zadnji
              #   self.pročitaj(NL.TOČKAZAREZ)
              #   Vrati(što)
-        elif self >> NL.TOINT:
-            return self.castInt() # -
-        elif self >> NL.TOSTRING:
-            return self.castString() # -
+        elif self >> {NL.TOINT, NL.TOSTRING}:
+            return self.cast() # -
+        #elif self >> NL.TOSTRING:
+        #    return self.castString() # -
+        elif self >> NL.PPLUS:
+            return self.postinkrement()
         else:
             raise self.greška()
     
@@ -180,6 +183,13 @@ class NLParser(Parser):
             operator = self.zadnji
             self.pročitaj(NL.TOČKAZAREZ)
             return Pridruživanje(ime, nenavedeno, operator)
+    
+    def postinkrement(self):
+        operator = self.zadnji
+        ime = self.pročitaj(NL.IME)
+        self.pročitaj(NL.TOČKAZAREZ)
+        return Pridruživanje(ime, nenavedeno, operator)
+
 
         
     def if_grananje(self):
@@ -428,22 +438,13 @@ class NLParser(Parser):
         self.pročitaj(NL.TOČKAZAREZ)
         return Unos(unosi)
 
-    def castInt(self):
-        operator = self.zadnji
+    def cast(self):                         # mogući pozivi: cast(ime, vrijednost); ime1 = vrijednost; cast(ime2, ime1); 
+        operator = self.zadnji              # gdje je vrijednost int ili string, a cast naredba toInt ili toStr
         self.pročitaj(NL.OOTV)
         ime = self.pročitaj(NL.IME)
         self.pročitaj(NL.ZAREZ)
-        stari = self.pročitaj(NL.STRING)
-        self.pročitaj(NL.OZATV)
-        self.pročitaj(NL.TOČKAZAREZ)
-        return Pridruživanje(ime, stari, operator)
-    
-    def castString(self):
-        operator = self.zadnji
-        self.pročitaj(NL.OOTV)
-        ime = self.pročitaj(NL.IME)
-        self.pročitaj(NL.ZAREZ)
-        stari = self.pročitaj(NL.BROJ)
+        if self >> {NL.BROJ, NL.STRING, NL.IME}:
+            stari = self.zadnji
         self.pročitaj(NL.OZATV)
         self.pročitaj(NL.TOČKAZAREZ)
         return Pridruživanje(ime, stari, operator)
@@ -495,6 +496,7 @@ class Pridruživanje(AST('ime pridruženo operator')):
             mem[self.ime.sadržaj] = int(novi)
         elif self.operator ^ NL.TOSTRING:
             novi = str(self.pridruženo.vrijednost(mem))
+            novi = '"' + novi + '"'
             mem[self.ime.sadržaj] = novi
 
 
@@ -735,6 +737,8 @@ if __name__ == '__main__':
         cout << i << endl;
         i++;
         cout << i << endl;
+        ++i;
+        cout << i << endl;
     '''
 
     print(ulaz9)
@@ -746,7 +750,8 @@ if __name__ == '__main__':
 
 
     ulaz10 = '''
-    toInt(x,"15");
+    y = "15";
+    toInt(x,y);
     cout << x << endl;
 
     toStr(x,15);
