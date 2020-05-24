@@ -107,11 +107,11 @@ def nl_lex(kod):
 # Beskontekstna gramatika
 # +start-> naredba naredbe
 # +naredbe -> '' | naredba naredbe
-# naredba-> pridruži | postinkrement | OOTV naredbe OZATV | petlja | grananje |
+# naredba-> pridruži | predinkrement | OOTV naredbe OZATV | petlja | grananje |
 #            ispis TOČKAZAREZ| unos | BREAK TOČKAZAREZ | vrati | cast
 # +pridruži-> IME PRIDRUŽI izraz TOČKAZAREZ
 # +petlja-> for naredba | for VOTV naredbe VZATV
-# +for-> FOR OOTV IME PRIDRUŽI BROJ TOČKAZAREZ IME ( MANJE | MJEDNAKO ) BROJ TOČKAZAREZ inkrement OZATV
+# +for-> FOR OOTV IME PRIDRUŽI BROJ TOČKAZAREZ IME ( MANJE | MJEDNAKO | VEĆE | VJEDNAKO ) BROJ TOČKAZAREZ inkrement OZATV
 # inkrement-> IME PPLUS | PPLUS IME | IME PJEDNAKO BROJ
 # +grananje-> ( IF | WHILE ) uvjet kod | IF uvjet kod ELSE kod |
 #            DO kod WHILE uvjet
@@ -168,7 +168,7 @@ class NLParser(Parser):
         #elif self >> NL.TOSTRING:
         #    return self.castString() # -
         elif self >> NL.PPLUS:
-            return self.postinkrement()
+            return self.predinkrement()
         else:
             raise self.greška()
     
@@ -184,7 +184,7 @@ class NLParser(Parser):
             self.pročitaj(NL.TOČKAZAREZ)
             return Pridruživanje(ime, nenavedeno, operator)
     
-    def postinkrement(self):
+    def predinkrement(self):
         operator = self.zadnji
         ime = self.pročitaj(NL.IME)
         self.pročitaj(NL.TOČKAZAREZ)
@@ -334,9 +334,7 @@ class NLParser(Parser):
         i2 = self.pročitaj(NL.IME)
         if i != i2:
             raise SemantičkaGreška('nisu podržane različite varijable')
-        if self >> NL.MANJE:
-            usporedba = self.zadnji
-        elif self >> NL.MJEDNAKO: 
+        if self >> {NL.MANJE, NL.VEĆE, NL.MJEDNAKO, NL.VJEDNAKO}:
             usporedba = self.zadnji
         granica = self.pročitaj(NL.BROJ)
         self.pročitaj(NL.TOČKAZAREZ)
@@ -368,7 +366,7 @@ class NLParser(Parser):
         ispisi = []
         novired = False
         while self >> NL.MMANJE:
-            if self >> {NL.IME, NL.STRING}: ispisi.append(self.zadnji)
+            if self >> {NL.IME, NL.STRING, NL.BROJ}: ispisi.append(self.zadnji)
             elif self >> NL.ENDL:
                 novired = True
                 break
@@ -382,11 +380,27 @@ class NLParser(Parser):
 
 # izraz-> ( BROJ | IME ) ( PLUS | MINUS | PUTA | KROZ ) ( BROJ | IME ) | (STRING | IME ) PLUS ( STRING | IME ) | BROJ | STRING     
     def izraz(self):
-        if self >> NL.BROJ: # broj+broj 
-            prvi = self.zadnji
+        if self >> NL.MINUS: # broj+broj 
+            op = self.zadnji
+            prvi = self.pročitaj(NL.BROJ)
+            prvi = Unarna(op, prvi)
             
             op = nenavedeno
-            if self >> {NL.PLUS, NL.MINUS, NL.PUTA, NL.KROZ}:
+            if self >> {NL.PLUS, NL.MINUS, NL.PUTA, NL.KROZ} or self >> {NL.JEDNAKO, NL.NJEDNAKO, NL.MJEDNAKO, NL.MANJE, NL.VJEDNAKO, NL.VEĆE}: # drugi dio opcionalan (v. Binarna)
+                op = self.zadnji
+            if(op == nenavedeno): # broj
+                return prvi
+            elif self >> NL.IME: # broj+ime
+                drugi = self.zadnji
+                return Binarna(op, prvi, drugi)
+            else:
+                drugi = self.pročitaj(NL.BROJ)
+                return Binarna(op, prvi, drugi)
+        if self >> NL.BROJ: # broj+broj 
+            prvi = self.zadnji
+
+            op = nenavedeno
+            if self >> {NL.PLUS, NL.MINUS, NL.PUTA, NL.KROZ} or self >> {NL.JEDNAKO, NL.NJEDNAKO, NL.MJEDNAKO, NL.MANJE, NL.VJEDNAKO, NL.VEĆE}: # drugi dio opcionalan (v. Binarna)
                 op = self.zadnji
             if(op == nenavedeno): # broj
                 return prvi
@@ -499,7 +513,10 @@ class Pridruživanje(AST('ime pridruženo operator')):
             novi = '"' + novi + '"'
             mem[self.ime.sadržaj] = novi
 
-
+class Unarna(AST('op ispod')):
+    def vrijednost(self, env):
+        o, z = self.op, self.ispod.vrijednost(env)
+        if o ^ NL.MINUS: return -z
 
 class Binarna(AST('op lijevo desno')):
     def vrijednost(self, mem):
@@ -521,6 +538,15 @@ class Binarna(AST('op lijevo desno')):
             elif o ^ NL.MINUS: return x - y
             elif o ^ NL.PUTA: return x * y
             elif o ^ NL.KROZ: return x / y
+
+            #opcionalno (ako želimo moć ispisat npr y=2<3, pa da tu ispiše 1, je li se ovo kosi s gramatikom?): 
+            elif o ^ NL.JEDNAKO: return int(x == y)
+            elif o ^ NL.NJEDNAKO: return int(x != y)
+            elif o ^ NL.MJEDNAKO: return int(x <= y)
+            elif o ^ NL.MANJE: return int(x < y)
+            elif o ^ NL.VJEDNAKO: return int(x >= y)
+            elif o ^ NL.VEĆE: return int(x > y)
+
             else: assert False, 'nepokriveni slučaj binarnog operatora' + str(o)
         except ArithmeticError as ex: o.problem(*ex.args)
 
@@ -588,6 +614,24 @@ class Petlja(AST('varijabla početak usporedba granica inkrement blok')):
                 if inkr is nenavedeno: inkr = 1
                 else: inkr = inkr.vrijednost(mem)
                 mem[kv] += inkr
+        elif usp ^ NL.VEĆE:
+            while mem[kv] > self.granica.vrijednost(mem):
+                try:
+                    for naredba in self.blok: naredba.izvrši(mem)
+                except Prekid: break
+                inkr = self.inkrement
+                if inkr is nenavedeno: inkr = 1
+                else: inkr = inkr.vrijednost(mem)
+                mem[kv] -= inkr 
+        elif usp ^ NL.VJEDNAKO:
+            while mem[kv] > self.granica.vrijednost(mem):
+                try:
+                    for naredba in self.blok: naredba.izvrši(mem)
+                except Prekid: break
+                inkr = self.inkrement
+                if inkr is nenavedeno: inkr = 1
+                else: inkr = inkr.vrijednost(mem)
+                mem[kv] -= inkr 
 
 
 if __name__ == '__main__':
@@ -602,9 +646,12 @@ if __name__ == '__main__':
 
     ulaz2 = '''
     for( i = 0; i <= 10; i+=2 ) {
-        //if( i < 9 ) \n
+        if( i < 9 ) 
             cout << i << endl;
-        //else break; \n
+        else break; 
+    }
+    for( i = 10; i >= 0; i+=2 ) {
+            cout << i << endl;
     }
     '''
 
@@ -765,6 +812,17 @@ if __name__ == '__main__':
     print(nl)
     nl.izvrši() 
 
+    ulaz11 = ''' 
+    y = -15+2;
+    z = 15<2;
+    if(!(y>z)) cout << "y je manji od z:";
+    cout << y << z << endl;
+    '''
 
+    print(ulaz11)
+    tokeni = list(nl_lex(ulaz11))
+    #print(*tokeni5)
+    nl = NLParser.parsiraj(tokeni)
+    print(nl)
+    nl.izvrši() 
 
-  
