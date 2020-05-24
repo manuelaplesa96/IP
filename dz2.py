@@ -162,10 +162,10 @@ class NLParser(Parser):
              #   što = self.zadnji
              #   self.pročitaj(NL.TOČKAZAREZ)
              #   Vrati(što)
-        #elif self >> NL.TOINT:
-        #    return self.castInt() # -
-        #elif self >> NL.TOSTRING:
-        #    return self.castString() # -
+        elif self >> NL.TOINT:
+            return self.castInt() # -
+        elif self >> NL.TOSTRING:
+            return self.castString() # -
         else:
             raise self.greška()
     
@@ -180,6 +180,7 @@ class NLParser(Parser):
             operator = self.zadnji
             self.pročitaj(NL.TOČKAZAREZ)
             return Pridruživanje(ime, nenavedeno, operator)
+
         
     def if_grananje(self):
         self.pročitaj(NL.OOTV)
@@ -426,11 +427,27 @@ class NLParser(Parser):
             if self >> NL.IME: unosi.append(self.zadnji)
         self.pročitaj(NL.TOČKAZAREZ)
         return Unos(unosi)
-            
-         
-    #def castInt(self):
 
-    #def castString(self):
+    def castInt(self):
+        operator = self.zadnji
+        self.pročitaj(NL.OOTV)
+        ime = self.pročitaj(NL.IME)
+        self.pročitaj(NL.ZAREZ)
+        stari = self.pročitaj(NL.STRING)
+        self.pročitaj(NL.OZATV)
+        self.pročitaj(NL.TOČKAZAREZ)
+        return Pridruživanje(ime, stari, operator)
+    
+    def castString(self):
+        operator = self.zadnji
+        self.pročitaj(NL.OOTV)
+        ime = self.pročitaj(NL.IME)
+        self.pročitaj(NL.ZAREZ)
+        stari = self.pročitaj(NL.BROJ)
+        self.pročitaj(NL.OZATV)
+        self.pročitaj(NL.TOČKAZAREZ)
+        return Pridruživanje(ime, stari, operator)
+
 
 
 class Prekid(Exception): pass
@@ -471,6 +488,16 @@ class Pridruživanje(AST('ime pridruženo operator')):
             mem[self.ime.sadržaj] += self.pridruženo.vrijednost(mem)
         elif self.operator ^ NL.PPLUS:
             mem[self.ime.sadržaj] = mem[self.ime.sadržaj] +1
+        elif self.operator ^ NL.TOINT:
+            trenutni = self.pridruženo.vrijednost(mem)
+            len_tren = len(trenutni) - 1
+            novi = trenutni[1:len_tren]
+            mem[self.ime.sadržaj] = int(novi)
+        elif self.operator ^ NL.TOSTRING:
+            novi = str(self.pridruženo.vrijednost(mem))
+            mem[self.ime.sadržaj] = novi
+
+
 
 class Binarna(AST('op lijevo desno')):
     def vrijednost(self, mem):
@@ -478,8 +505,7 @@ class Binarna(AST('op lijevo desno')):
         if self.lijevo ^ NL.STRING:
             lijevi_string = self.lijevo.vrijednost(mem)
             desni_string = self.desno.vrijednost(mem)
-            len_lijevo = len(lijevi_string)
-            len_lijevo -= 1
+            len_lijevo = len(lijevi_string) - 1
             final_lijevo = lijevi_string[:len_lijevo]  # string bez zadnjeg char-a (")
             final_desno = desni_string[1:]  # string bez prvog char-a (")
             try:
@@ -717,6 +743,22 @@ if __name__ == '__main__':
     nl = NLParser.parsiraj(tokeni9)
     print(nl)
     nl.izvrši()   
+
+
+    ulaz10 = '''
+    toInt(x,"15");
+    cout << x << endl;
+
+    toStr(x,15);
+    cout << x << endl;
+    '''
+
+    print(ulaz10)
+    tokeni = list(nl_lex(ulaz10))
+    #print(*tokeni5)
+    nl = NLParser.parsiraj(tokeni)
+    print(nl)
+    nl.izvrši() 
 
 
 
