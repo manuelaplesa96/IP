@@ -114,8 +114,8 @@ def nl_lex(kod):
 # Beskontekstna gramatika
 # +start-> naredba naredbe
 # +naredbe -> '' | naredba naredbe
-# naredba-> pridruži | predinkrement | OOTV naredbe OZATV | petlja | grananje |
-#            ispis TOČKAZAREZ| unos | BREAK TOČKAZAREZ | vrati | cast
+# +naredba-> pridruži | predinkrement | OOTV naredbe OZATV | petlja | grananje |
+#            ispis TOČKAZAREZ| unos | BREAK TOČKAZAREZ | cast
 # +pridruži-> IME ( PRIDRUŽI | PJEDNAKO ) izraz TOČKAZAREZ | IME PPLUS TOČKAZAREZ
 # +petlja-> for naredba | for VOTV naredbe VZATV
 # +for-> FOR OOTV IME PRIDRUŽI BROJ TOČKAZAREZ IME ( MANJE | MJEDNAKO | VEĆE | VJEDNAKO ) BROJ TOČKAZAREZ inkrement OZATV
@@ -128,7 +128,7 @@ def nl_lex(kod):
 # +aritm-> JEDNAKO | MJEDNAKO | VJEDNAKO | NJEDNAKO | MANJE | VEĆE
 # +str -> JEDNAKO
 # +izraz-> ( BROJ | IME ) ( PLUS | MINUS | PUTA | KROZ ) ( BROJ | IME ) | (STRING | IME ) PLUS ( STRING | IME )  ##unutar zagrada
-# +log -> AND | OR
+# +log -> AND | OR.......................nema
 # +ispis-> COUT ispisi | COUT ispisi MMANJE ENDL
 # +ispisi-> '' | MMANJE IME ispisi 
 # +unos-> CIN unosi TOČKAZAREZ ( mislim da nema endl)
