@@ -9,9 +9,9 @@ U jeziku je još definirana i klasa BREAK koja služi za izlazak iz petlje.
 
 ## Pridruživanja
 
-* = (NL.PRIDRUŽIVANJE) - kako bismo svaku varijablu mogli inicijalizirati nekom vrijednošću ili joj kasnije pridružiti neku drugu vrijednost.
-* += (NL.PJEDNKO) - kako bismo mogli povećavati vrijednost nekog ranije inicijaliziranog izraza za određenu vrijednost
-* ++ (NL.PPLUS) - služi nam za inkrement, tj. povećava vrijednost varijable za 1
+* '=' (NL.PRIDRUŽIVANJE) - kako bismo svaku varijablu mogli inicijalizirati nekom vrijednošću ili joj kasnije pridružiti neku drugu vrijednost.
+* '+=0 (NL.PJEDNKO) - kako bismo mogli povećavati vrijednost nekog ranije inicijaliziranog izraza za određenu vrijednost
+* '++' (NL.PPLUS) - služi nam za inkrement, tj. povećava vrijednost varijable za 1
 
 
 ## Operacije s tipovima
@@ -21,15 +21,15 @@ Kako bismo išta mogli raditi s varijablama i vrijednostima koje unesemo, trebaj
 ### Broj
 
 #### Osnovne operacije:
-* + (NL.PLUS)
-* - (NL.MINUS)
-* * (NL.PUTA)
-* / (NL.KROZ)
+* '+' (NL.PLUS)
+* '-' (NL.MINUS)
+* '*' (NL.PUTA)
+* '/' (NL.KROZ)
 
 #### Usporedbe:
-* < (NL.MANJE), <= (NL.MJEDNAKO)
-* > (NL.VEĆE), => (NL.VJEDNAKO)
-* = (NL.JEDNAKO), != (NL.NJEDNAKO)
+* '<' (NL.MANJE), '<=' (NL.MJEDNAKO)
+* '>' (NL.VEĆE), '=>' (NL.VJEDNAKO)
+* '=' (NL.JEDNAKO), '!=' (NL.NJEDNAKO)
 
 #### Cast
 * pretvaranje broja u string (NL.TOSTRING)
@@ -37,10 +37,10 @@ Kako bismo išta mogli raditi s varijablama i vrijednostima koje unesemo, trebaj
 ### String
 
 #### Osnovne operacije:
-* + (NL.PLUS) - kod stringa ova operacija predstavlja konkatenaciju
+* '+' (NL.PLUS) - kod stringa ova operacija predstavlja konkatenaciju
 
 #### Usporedbe:
-* = (NL.JEDNAKO)
+* '=' (NL.JEDNAKO)
 
 #### Cast
 * pretvaranje stringa u broj (NL.TOINT)
