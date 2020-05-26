@@ -9,9 +9,9 @@ U jeziku je još definirana i klasa `BREAK` koja služi za izlazak iz petlje.
 
 ## Pridruživanja
 
-* **=** (`PRIDRUŽIVANJE`) - kako bismo svaku varijablu mogli inicijalizirati nekom vrijednošću ili joj kasnije pridružiti neku drugu vrijednost.
-* **+=**, **-=** (`PJEDNKO`,`MJEDNAKO`) - kako bismo mogli povećavati/smanjiti vrijednost nekog ranije inicijaliziranog izraza za određenu vrijednost
-* **++** , **- -** (`PPLUS`,`MMINUS`) - služi nam za (post/pred)inkrement/dekrement, tj. povećava/smanjuje vrijednost varijable za 1
+* ** = ** (`PRIDRUŽIVANJE`) - kako bismo svaku varijablu mogli inicijalizirati nekom vrijednošću ili joj kasnije pridružiti neku drugu vrijednost.
+* ** += **, ** -= ** (`PJEDNKO`,`MJEDNAKO`) - kako bismo mogli povećavati/smanjiti vrijednost nekog ranije inicijaliziranog izraza za određenu vrijednost
+* ** ++ ** , ** - - ** (`PPLUS`,`MMINUS`) - služi nam za (post/pred)inkrement/dekrement, tj. povećava/smanjuje vrijednost varijable za 1
 
 ## Operacije s tipovima
 
