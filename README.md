@@ -1,6 +1,6 @@
 # New Language (NL)
 
-Zadatak nam je bio osmisliti programski jezik koji zadovoljava neke operacije i karakteristike koje inače inače očekujemo da jezik podržava. Tako ovaj naš NL jezik podržava 2 tipa podataka, broj (int) (`BROJ`) i string (`STRING`), pri tome se strigovi zadaju unutar dvostrukih navodnika (" "). Nazivi varijabli (`IME`) su također strigovi, ali ne pisani unutar " ", nego u smislu da nazivi varijabli ne smiju početi brojem, već mora početi slovom. Kako bi NL prepoznao da se radi o naredbi ako ona mora završiti sa ; (`TOČKAZAREZ`). 
+Zadatak nam je bio osmisliti programski jezik koji zadovoljava neke operacije i karakteristike koje inače očekujemo da jezik podržava. Tako naš NL jezik podržava 2 tipa podataka, broj (`BROJ`) i string (`STRING`), pri tome se strigovi zadaju unutar dvostrukih navodnika (" "), dok je broj samo niz znamenki bez razmaka. Nazivi varijabli (`IME`) su također strigovi, ali ne pisani unutar " ", nego u smislu da nazivi varijabli ne smiju početi brojem, već mora početi slovom. Također želimo da NL prepoznaje i obavlja i neke naredbe, pa kako bi NL neki izraz prepoznao kao naredbu on mora završiti sa ; (`TOČKAZAREZ`). 
  
 **Primjer.** x = 1, y = "1"; 
 x i y su varijable s time da je varijabli x pridružena vrijednost 1 tipa broj, a y vrijednsot1 tipa string.
@@ -9,8 +9,8 @@ U jeziku je još definirana i klasa `BREAK` koja služi za izlazak iz petlje.
 
 ## Pridruživanja
 
-* **=** (`PRIDRUŽIVANJE`) - kako bismo svaku varijablu mogli inicijalizirati nekom vrijednošću ili joj kasnije pridružiti neku drugu vrijednost.
-* **+=**, **-=** (`PJEDNKO`,`MJEDNAKO`) - kako bismo mogli povećavati/smanjiti vrijednost nekog ranije inicijaliziranog izraza za određenu vrijednost
+* **=** (`PRIDRUŽIVANJE`) - kako bismo svaku varijablu mogli inicijalizirati nekom vrijednošću ili joj kasnije pridružiti neku drugu vrijednost
+* **+=**, **-=** (`PJEDNKO`,`MIJEDNAKO`) - kako bismo mogli povećavati/smanjiti vrijednost nekog ranije inicijaliziranog izraza za određenu vrijednost
 * **++** , **- -** (`PPLUS`,`MMINUS`) - služi nam za (post/pred)inkrement/dekrement, tj. povećava/smanjuje vrijednost varijable za 1
 
 ## Operacije s tipovima
@@ -22,18 +22,18 @@ Kako bismo išta mogli raditi s varijablama i vrijednostima koje unesemo, trebaj
 #### Osnovne operacije:
 * **+** (`PLUS`)
 * **-** (`MINUS`)
-* ***** (`PUTA`)
+* __*__ (`PUTA`)
 * **/** (`KROZ`)
 
 #### Usporedbe:
 * **<** (`MANJE`), **<=** (`MJEDNAKO`)
 * **>** (`VEĆE`), **=>** (`VJEDNAKO`)
-* **=** (`JEDNAKO`), **!=** (`NJEDNAKO`)
+* **==** (`JEDNAKO`), **!=** (`NJEDNAKO`)
 
 #### Cast
 * pretvaranje broja u string (`TOSTRING`)
 
-Kako su podržani i negativni brojevi, treba naglasiti da ako je negativan broj prvi u izrazu onda nisu nužne zagrade, ali ako je ispred njega neki znak operacije, potrebne su zagrade.
+Kako su podržani i negativni brojevi, treba naglasiti da ako je negativan broj prvi u izrazu onda nisu nužne zagrade, ali ako je ispred njega znak operacije, potrebne su zagrade.
 
 **Primjer.** x = -2 * (-3);
 
@@ -43,12 +43,12 @@ Kako su podržani i negativni brojevi, treba naglasiti da ako je negativan broj 
 * **+** (`PLUS`) - kod stringa ova operacija predstavlja konkatenaciju
 
 #### Usporedbe:
-* **=** (`JEDNAKO`)
+* **==** (`JEDNAKO`)
 
 #### Cast
 * pretvaranje stringa u broj (`TOINT`)
 
-Osnovne operacije ne prihvaćaju _mješovite_ tipove, npr. `BROJ`+`STRING`, nego ako želimo takve izraze prvo se mora pretvoriti u isti tip, pri tome nam pomažu funkcije 
+Osnovne operacije ne prihvaćaju _mješovite_ tipove, npr. `BROJ`+`STRING`, ali ako želimo takve izraze prvo operandi moraju pretvoriti u isti tip, a pri tome nam pomažu funkcije `TOSTRING` i  `TOINT`.
 Operacije usporedbe vraćaju 1 (ako je izraz istinit) i 0 (ako je izraz lažan).
 
 
@@ -81,7 +81,7 @@ Pri tome gornja ograda može biti:
 * i>broj2
 * i>=broj2
 
-Dok vrijednost varijable i možemo mijenjati sa ++ (`i++`,`++i`), --(`i--`,`--i`), +=, -=
+Dok vrijednost varijable _i_ možemo mijenjati sa ++ (`i++`,`++i`), --(`i--`,`--i`), +=, -=.
 
 
 * **while** (`WHILE`)
