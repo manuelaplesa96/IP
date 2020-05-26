@@ -134,8 +134,7 @@ def nl_lex(kod):
 # uvjet-> BROJ aritm ( BROJ | OOTV izraz OZATV | IME ) | STRING str ( STRING | IME | OOTV izraz OZATV ) | 
 #         OOTV izraz OZATV aritm ( OOTV izraz OZATV | BROJ | STRING | IME )  | IME ( OOTV izraz OZATV | BROJ | STRING | IME )
 # aritm -> JEDNAKO | MJEDNAKO | VJEDNAKO | NJEDNAKO | MANJE | VEĆE
-# str -> JEDNAKO
-# izraz-> ( MINUS | '' ) ( BROJ | IME ) ( PLUS | MINUS | PUTA | KROZ | aritm ) predznak ( BROJ | IME ) | (STRING | IME ) PLUS ( STRING | IME )  
+# izraz-> ( MINUS | '' ) ( BROJ | IME ) ( PLUS | MINUS | PUTA | KROZ ) predznak ( BROJ | IME ) | (STRING | IME ) PLUS ( STRING | IME )  
 # predznak -> OOTV MINUS OZATV | ''
 # ispis -> COUT MMANJE ispisi TOČKAZAREZ | COUT MMANJE ispisi MMANJE ENDL TOČKAZAREZ
 # ispisi -> '' | IME ispisi 
