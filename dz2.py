@@ -143,7 +143,7 @@ def nl_lex(kod):
 # cast -> TOSTRING OOTV IME ZAREZ ( BROJ | IME ) OZATV TOČKAZAREZ | TOINT OOTV IME ZAREZ (STRING | IME) OZATV TOČKAZAREZ
 
 
-# stabla: Program, Petlja, IF_Grananje, WHILE_petlja, DO_petlja, Blok, Ispis, Pridruživanje, Binarna
+# stabla: Prekid, Blok, Program, Ispis, Unos, Pridruživanje, Negativni_broj, Operacije, Uvjet, IF_Grananje, WHILE_Petlja, DO_Petlja, Negacija, FOR_Petlja
 
 
 class NLParser(Parser):
@@ -394,7 +394,7 @@ class NLParser(Parser):
                 blok.append(self.naredba())
         else:
             blok = [self.naredba()]
-        return FOR_petlja(i, početak, usporedba, granica, inkrement, blok)
+        return FOR_Petlja(i, početak, usporedba, granica, inkrement, blok)
 
     def ispis(self):
         ispisi = []
@@ -417,7 +417,7 @@ class NLParser(Parser):
             op = self.zadnji
             if self >> {NL.BROJ, NL.IME}:
                 prvi = self.zadnji
-            prvi = Unarna(op, prvi)
+            prvi = Negativni_broj(op, prvi)
             
             op = nenavedeno
             if self >> {NL.PLUS, NL.MINUS, NL.PUTA, NL.KROZ}:
@@ -430,7 +430,7 @@ class NLParser(Parser):
                 pom_op = self.pročitaj(NL.MINUS)
                 if self >> {NL.IME, NL.BROJ}:
                     drugi = self.zadnji
-                drugi = Unarna(pom_op, drugi)
+                drugi = Negativni_broj(pom_op, drugi)
                 self.pročitaj(NL.OZATV)
 
         elif self >> {NL.BROJ,NL.IME}:
@@ -447,7 +447,7 @@ class NLParser(Parser):
                 pom_op = self.pročitaj(NL.MINUS)
                 if self >> {NL.IME, NL.BROJ}:
                     drugi = self.zadnji
-                drugi = Unarna(pom_op, drugi)
+                drugi = Negativni_broj(pom_op, drugi)
                 self.pročitaj(NL.OZATV)
         elif self >> NL.STRING:
             prvi = self.zadnji
@@ -471,12 +471,12 @@ class NLParser(Parser):
             elif drugi == nula:
                 return prvi
             else:
-                return Binarna(op,prvi,drugi)
+                return Operacije(op,prvi,drugi)
         elif op ^ NL.MINUS:
             if drugi == nula:
                 return prvi
             else:
-                return Binarna(op,prvi,drugi)
+                return Operacije(op,prvi,drugi)
         elif op ^ NL.PUTA:
             if prvi == jedan:
                 return drugi
@@ -485,7 +485,7 @@ class NLParser(Parser):
             elif prvi == nula or drugi == nula:
                 return nula
             else:
-                return Binarna(op,prvi,drugi)
+                return Operacije(op,prvi,drugi)
         elif op ^ NL.KROZ:
             if drugi == jedan:
                 return prvi
@@ -494,7 +494,7 @@ class NLParser(Parser):
             elif prvi == nula:
                 return nula
             else:
-                return Binarna(op,prvi,drugi)
+                return Operacije(op,prvi,drugi)
 
     def unos(self):
         unosi = []
@@ -513,7 +513,6 @@ class NLParser(Parser):
         self.pročitaj(NL.OZATV)
         self.pročitaj(NL.TOČKAZAREZ)
         return Pridruživanje(ime, stari, operator)
-
 
 
 class Prekid(Exception): pass
@@ -575,12 +574,12 @@ class Pridruživanje(AST('ime pridruženo operator')):
             novi = '"' + novi + '"'
             mem[self.ime.sadržaj] = novi
 
-class Unarna(AST('op ispod')):
+class Negativni_broj(AST('op ispod')):
     def vrijednost(self, env):
         o, z = self.op, self.ispod.vrijednost(env)
         if o ^ NL.MINUS: return -z
 
-class Binarna(AST('op lijevo desno')):
+class Operacije(AST('op lijevo desno')):
     def vrijednost(self, mem):
         o,x,y = self.op, self.lijevo.vrijednost(mem), self.desno.vrijednost(mem)
         if type(x) is type(y):
@@ -607,7 +606,7 @@ class Binarna(AST('op lijevo desno')):
                     except ArithmeticError as ex: o.problem(*ex.args)
             except ArithmeticError as ex: o.problem(*ex.args)
         else:
-            raise SemantičkaGreška('Pokušavate raditi aritmetičku operaciju na dvjema varijablama različitog tipa!')
+            raise SemantičkaGreška('Pokušavate raditi aritmetičku operaciju na dvijema varijablama različitog tipa!')
 
 
 class Uvjet(AST('op lijevo desno')):
@@ -615,12 +614,12 @@ class Uvjet(AST('op lijevo desno')):
         o,x,y = self.op, self.lijevo.vrijednost(mem), self.desno.vrijednost(mem)
         if type(x) is type(y):
             try:
-                if o ^ NL.JEDNAKO: return x == y
-                elif o ^ NL.NJEDNAKO: return x != y
-                elif o ^ NL.MJEDNAKO: return x <= y
-                elif o ^ NL.MANJE: return x < y
-                elif o ^ NL.VJEDNAKO: return x >= y
-                elif o ^ NL.VEĆE: return x > y
+                if o ^ NL.JEDNAKO: return int(x == y)
+                elif o ^ NL.NJEDNAKO: return int(x != y)
+                elif o ^ NL.MJEDNAKO: return int(x <= y)
+                elif o ^ NL.MANJE: return int(x < y)
+                elif o ^ NL.VJEDNAKO: return int(x >= y)
+                elif o ^ NL.VEĆE: return int(x > y)
                 else: assert False, 'nepokriveni slučaj binarnog operatora' + str(o)
             except ArithmeticError as ex: o.problem(*ex.args)
         else:
@@ -656,7 +655,7 @@ class Negacija(AST('ispod')):
     def vrijednost(self, mem):
         return not self.ispod.vrijednost(mem)
 
-class FOR_petlja(AST('varijabla početak usporedba granica inkrement blok')):
+class FOR_Petlja(AST('varijabla početak usporedba granica inkrement blok')):
     def izvrši(self, mem):
         kv = self.varijabla.sadržaj
         mem[kv] = self.početak.vrijednost(mem)
@@ -893,6 +892,9 @@ if __name__ == '__main__':
     if((y+z)==x) 
         cout << "y je manji od z:";
     cout << x <<endl;
+
+    if(2<3) 
+        cout << "2 je manje od 3";
 
     '''
 
