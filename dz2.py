@@ -541,7 +541,7 @@ class Unos(AST('unosi')):
     def izvrši(self, mem):
         for unos in self.unosi:
             novavar = input() #on automatski napravi str od unosa
-            if novavar.isdigit():
+            if novavar.startswith('-') or novavar.isdigit():
                 novibroj = int(novavar)
                 mem[unos.sadržaj] = novibroj
             elif novavar.startswith('"') and novavar.endswith('"'):
@@ -600,7 +600,7 @@ class Operacije(AST('op lijevo desno')):
                         if o ^ NL.PLUS: return x + y
                         elif o ^ NL.MINUS: return x - y
                         elif o ^ NL.PUTA: return x * y
-                        elif o ^ NL.KROZ: return x / y
+                        elif o ^ NL.KROZ: return int(x / y)
 
                         else: assert False, 'nepokriveni slučaj binarnog operatora' + str(o)
                     except ArithmeticError as ex: o.problem(*ex.args)
@@ -818,31 +818,32 @@ if __name__ == '__main__':
     # 
     primjer5 = '''
         cout << "Primjer5." <<endl;
-        cout << "Unesite string: ";
-        cin >> str;
+     
+            cout << "Unesi broj:";
+            cin >> x;
+            max = x; //pretpostavimo da je prvi najveci
+            do{
+                cout << "Unesi broj: ";
+                cin >> x;
+                if(x > max)
+                    max = x;
+            
+            }while(x > 0);
+    
+            cout << "Najveći broj je: " << max << endl;
 
-        for(i=0;i<5;i++)
+        s = "Niz riječi: ";
+        zarez = ",";
+        while(max > 0)
         {
-            cout << "* ";
-            for(j=0;j<10;j++)
-            {   
-                cout << str;
-                if(j<=i)
-                {
-                    k = 0;
-                    do
-                    {
-                        cout << str;
-                        k++;
-                    }while(k<3);
-                }
-                else
-                {
-                    cout << " * " << endl;
-                    break;
-                }
-            }
-        }   
+            cout << "Unesi string: ";
+            cin >> str;
+            s = s + str;
+            if(max != 1)
+                s = s + zarez;
+            max--;  
+        } 
+        cout << s << endl;
     '''
     print(primjer5)
     tokeni5 = list(nl_lex(primjer5))
@@ -854,27 +855,6 @@ if __name__ == '__main__':
 
 
 
-    # nađi max
-    primjer6 = '''
-    cout << "Unesi broj:";
-    cin >> x;
-    max = x; //pretpostavimo da je prvi najveci
-    do{
-        if(x > max)
-            max = x;
-            
-        cout << "Unesi broj: ";
-        cin >> x;
-    }while(x > 0);
-    
-    cout << "Najveći broj je: " << max << endl;
-    '''
-    print(primjer6)
-    tokeni6 = list(nl_lex(primjer6))
-    nl = NLParser.parsiraj(tokeni6)
-    print(nl)
-    print()
-    nl.izvrši()
-    print()
+ 
 
 
