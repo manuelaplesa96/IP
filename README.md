@@ -9,9 +9,9 @@ U jeziku je još definirana i klasa `BREAK` koja služi za izlazak iz petlje.
 
 ## Pridruživanja
 
-* ** = ** (`PRIDRUŽIVANJE`) - kako bismo svaku varijablu mogli inicijalizirati nekom vrijednošću ili joj kasnije pridružiti neku drugu vrijednost.
-* ** += **, ** -= ** (`PJEDNKO`,`MJEDNAKO`) - kako bismo mogli povećavati/smanjiti vrijednost nekog ranije inicijaliziranog izraza za određenu vrijednost
-* ** ++ ** , ** - - ** (`PPLUS`,`MMINUS`) - služi nam za (post/pred)inkrement/dekrement, tj. povećava/smanjuje vrijednost varijable za 1
+* **=** (`PRIDRUŽIVANJE`) - kako bismo svaku varijablu mogli inicijalizirati nekom vrijednošću ili joj kasnije pridružiti neku drugu vrijednost.
+* **+=**, **-=** (`PJEDNKO`,`MJEDNAKO`) - kako bismo mogli povećavati/smanjiti vrijednost nekog ranije inicijaliziranog izraza za određenu vrijednost
+* **++** , **- -** (`PPLUS`,`MMINUS`) - služi nam za (post/pred)inkrement/dekrement, tj. povećava/smanjuje vrijednost varijable za 1
 
 ## Operacije s tipovima
 
@@ -20,15 +20,15 @@ Kako bismo išta mogli raditi s varijablama i vrijednostima koje unesemo, trebaj
 ### Broj
 
 #### Osnovne operacije:
-* ** + ** (`PLUS`)
-* ** - ** (`MINUS`)
-* ** * ** (`PUTA`)
-* ** / ** (`KROZ`)
+* **+** (`PLUS`)
+* **-** (`MINUS`)
+* ***** (`PUTA`)
+* **/** (`KROZ`)
 
 #### Usporedbe:
-* ** < ** (`MANJE`), ** <= ** (`MJEDNAKO`)
-* ** > ** (`VEĆE`), ** => ** (`VJEDNAKO`)
-* ** = ** (`JEDNAKO`), ** != ** (`NJEDNAKO`)
+* **<** (`MANJE`), **<=** (`MJEDNAKO`)
+* **>** (`VEĆE`), **=>** (`VJEDNAKO`)
+* **=** (`JEDNAKO`), **!=** (`NJEDNAKO`)
 
 #### Cast
 * pretvaranje broja u string (`TOSTRING`)
@@ -40,10 +40,10 @@ Kako su podržani i negativni brojevi, treba naglasiti da ako je negativan broj 
 ### String
 
 #### Osnovne operacije:
-* ** + ** (`PLUS`) - kod stringa ova operacija predstavlja konkatenaciju
+* **+** (`PLUS`) - kod stringa ova operacija predstavlja konkatenaciju
 
 #### Usporedbe:
-* ** = ** (`JEDNAKO`)
+* **=** (`JEDNAKO`)
 
 #### Cast
 * pretvaranje stringa u broj (`TOINT`)
@@ -54,7 +54,7 @@ Operacije usporedbe vraćaju 1 (ako je izraz istinit) i 0 (ako je izraz lažan).
 
 ## Grananja
 
-* ** if ** (`IF`)
+* **if** (`IF`)
 ```cpp
 if(uvjet)
 	kod

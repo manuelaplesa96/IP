@@ -14,9 +14,6 @@ from pj import *
 class NL(enum.Enum):
     class STRING(Token):
         def vrijednost(self, _):
-            #s_navodnicima = self.sadržaj
-            #sadrzaj = s_navodnicima[1:-1]
-            #return sadrzaj
             return self.sadržaj
 
     class BROJ(Token):
@@ -122,33 +119,31 @@ def nl_lex(kod):
 
 
 # Beskontekstna gramatika
-# +start-> naredba naredbe
-# +naredbe -> '' | naredba naredbe
-# +naredba-> pridruži | predinkrement | OOTV naredbe OZATV | petlja | grananje |
-#            ispis TOČKAZAREZ| unos | BREAK TOČKAZAREZ | cast
-# +pridruži-> IME ( PRIDRUŽI | PJEDNAKO ) izraz TOČKAZAREZ | IME PPLUS TOČKAZAREZ
-# +petlja-> for naredba | for VOTV naredbe VZATV
-# +for-> FOR OOTV IME PRIDRUŽI BROJ TOČKAZAREZ IME ( MANJE | MJEDNAKO | VEĆE | VJEDNAKO ) BROJ TOČKAZAREZ inkrement OZATV
-# +inkrement-> IME PPLUS | PPLUS IME | IME PJEDNAKO BROJ
-# +grananje-> ( IF | WHILE ) uvjet kod | IF uvjet kod ELSE kod |
-#            DO kod WHILE uvjet
-# +kod -> naredba | VOTV naredbe VZATV
-# !!!uvjeti-> OOTV uvjet OZATV | ( NEGACIJA | ' ' ) OOTV uvjet OZATV log uvjeti.............nema
-# +uvjet-> (NEGACIJA | '' ) ( BROJ aritm BROJ | STRING str STRING ) | izraz aritm izraz ##nije unutar zagrada
-# +aritm-> JEDNAKO | MJEDNAKO | VJEDNAKO | NJEDNAKO | MANJE | VEĆE
-# +str -> JEDNAKO
-# +izraz-> ( BROJ | IME ) ( PLUS | MINUS | PUTA | KROZ ) ( BROJ | IME ) | (STRING | IME ) PLUS ( STRING | IME )  ##unutar zagrada
-# +log -> AND | OR.......................nema
-# +ispis-> COUT ispisi | COUT ispisi MMANJE ENDL
-# +ispisi-> '' | MMANJE IME ispisi 
-# +unos-> CIN unosi TOČKAZAREZ ( mislim da nema endl)
-# +unosi-> '' | VVEĆE IME unosi
-# !!!1vrati-> RETURN IME TOČKAZAREZ................nema
-# +cast -> TOSTRING OOTV IME, ( BROJ | IME ) OZATV TOČKAZAREZ | TOINT OOTV IME, (STRING | IME) OZATV TOČKAZAREZ
+# start -> naredba naredbe
+# naredbe -> '' | naredba naredbe
+# naredba -> pridruži | predinkrement | predekrement | naredbe | petlja | grananje |
+#            ispis | unos | BREAK TOČKAZAREZ | cast
+# pridruži-> IME ( PRIDRUŽI | PJEDNAKO | MIJEDNAKO ) izraz TOČKAZAREZ | IME ( PPLUS | MMINUS ) TOČKAZAREZ
+# predinkrement -> PPLUS IME TOČKAZAREZ
+# preddekrement -> MMINUS IME TOČKAZAREZ
+# petlja -> for naredba | for VOTV naredbe VZATV | WHILE (NEGACIJA | '' ) uvjet kod | DO kod WHILE (NEGACIJA | '' ) uvjet
+# for -> FOR OOTV IME PRIDRUŽI BROJ TOČKAZAREZ IME ( MANJE | MJEDNAKO | VEĆE | VJEDNAKO ) BROJ TOČKAZAREZ prirast OZATV
+# prirast -> ( PPLUS | MMINUS ) IME | IME ( PPLUS | MMINUS ) | IME ( PJEDNAKO | MIJEDNAKO ) BROJ
+# grananje -> IF (NEGACIJA | '' ) uvjet kod | IF (NEGACIJA | '' ) uvjet kod ELSE kod 
+# kod -> naredba | VOTV naredbe VZATV
+# uvjet-> BROJ aritm ( BROJ | OOTV izraz OZATV | IME ) | STRING str ( STRING | IME | OOTV izraz OZATV ) | 
+#         OOTV izraz OZATV aritm ( OOTV izraz OZATV | BROJ | STRING | IME )  | IME ( OOTV izraz OZATV | BROJ | STRING | IME )
+# aritm -> JEDNAKO | MJEDNAKO | VJEDNAKO | NJEDNAKO | MANJE | VEĆE
+# str -> JEDNAKO
+# izraz-> ( MINUS | '' ) ( BROJ | IME ) ( PLUS | MINUS | PUTA | KROZ ) predznak ( BROJ | IME ) | (STRING | IME ) PLUS ( STRING | IME )  ##unutar zagrada
+# predznak -> OOTV MINUS OZATV | ''
+# ispis -> COUT MMANJE ispisi TOČKAZAREZ | COUT MMANJE ispisi MMANJE ENDL TOČKAZAREZ
+# ispisi -> '' | IME ispisi 
+# unos -> CIN VVEĆE IME TOČKAZAREZ 
+# cast -> TOSTRING OOTV IME ZAREZ ( BROJ | IME ) OZATV TOČKAZAREZ | TOINT OOTV IME ZAREZ (STRING | IME) OZATV TOČKAZAREZ
 
 
-
-# stabla: Program +, Petlja +, IF_Grananje +, WHILE_Grananje +, DO_Grananje +, Blok ?, Ispis +, Pridruživanje +, Binarna +
+# stabla: Program, Petlja, IF_Grananje, WHILE_petlja, DO_petlja, Blok, Ispis, Pridruživanje, Binarna
 
 
 class NLParser(Parser):
@@ -160,27 +155,23 @@ class NLParser(Parser):
 
     def naredba(self):
         if self >> NL.FOR:
-            return self.petlja()  # +
+            return self.for_petlja()  
         elif self >> NL.IF:
-            return self.if_grananje()  # +
+            return self.if_grananje()  
         elif self >> NL.WHILE:
-            return self.while_grananje() # +
+            return self.while_petlja() 
         elif self >> NL.DO:
-            return self.do_grananje() # +
+            return self.do_petlja() 
         elif self >> NL.COUT:
-            return self.ispis() # +
+            return self.ispis() 
         elif self >> NL.BREAK:
-            return self.prekid()  # +
+            return self.prekid()  
         elif self >> NL.IME:
-            return self.pridruživanje() #+
+            return self.pridruživanje()
         elif self >> NL.CIN:
-            return self.unos() # -
-        #elif self >> NL.RETURN:  #nisan ovo dobro
-        #    return self.vrati()
+            return self.unos() 
         elif self >> {NL.TOINT, NL.TOSTRING}:
-            return self.cast() # -
-        #elif self >> NL.TOSTRING:
-        #    return self.castString() # -
+            return self.cast()
         elif self >> NL.PPLUS:
             return self.predinkrement()
         elif self >> NL.MMINUS:
@@ -251,7 +242,7 @@ class NLParser(Parser):
 
         return IF_Grananje(uvjet, if_blok, else_blok)
 
-    def while_grananje(self):
+    def while_petlja(self):
         self.pročitaj(NL.OOTV)
         neg = 0
         if self >> NL.NEGACIJA:
@@ -280,7 +271,7 @@ class NLParser(Parser):
 
         return WHILE_Petlja(uvjet, blok)
 
-    def do_grananje(self):
+    def do_petlja(self):
         self.pročitaj(NL.VOTV)  # blok naredbi
         blok = []
         while not self >> NL.VZATV:
@@ -327,16 +318,15 @@ class NLParser(Parser):
             prvi = self.zadnji
             if self >> NL.JEDNAKO:
                 op = self.zadnji
-            
-            #if self >> NL.OOTV: #ne znam ima li smisla string==izraz 
-            #    drugi = self.izraz()
-            #    self.pročitaj(NL.OZATV)
-            #else:
+ 
             if self >> NL.IME:
                 drugi = self.zadnji
+            elif self >> NL.OOTV: # string == izraz -
+                drugi = self.izraz()
+                self.pročitaj(NL.OZATV)
             else:
                 drugi = self.pročitaj(NL.STRING)
-        elif self >> NL.IME: ## pretpostavimo da je cast obavljen ako je ime string ili je koristeno samo jednakost
+        elif self >> NL.IME: # string == ime
             prvi = self.zadnji
             if self >> {NL.NJEDNAKO, NL.MJEDNAKO, NL.MANJE, NL.VJEDNAKO, NL.VEĆE, NL.JEDNAKO}:
                 op = self.zadnji
@@ -349,8 +339,7 @@ class NLParser(Parser):
             elif self >> NL.STRING: #ime == string
                 drugi = self.zadnji
             else: # ime == ime
-                drugi = self.pročitaj(NL.IME)
-            
+                drugi = self.pročitaj(NL.IME)        
         elif self >> NL.OOTV: # izraz==izraz, izraz==broj
             prvi = self.izraz()
             self.pročitaj(NL.OZATV)
@@ -359,13 +348,17 @@ class NLParser(Parser):
             
             if self >> NL.OOTV:
                 drugi = self.izraz()
-                self.pročitaj(NL.OZATV)
+                self.pročitaj(NL.OZATV) 
+            elif self >> NL.STRING:
+                drugi = self.zadnji
+            elif self >> NL.IME:
+                drugi = self.zadnji
             else:
                 drugi = self.pročitaj(NL.BROJ)
 
         return Uvjet(op,prvi,drugi)
             
-    def petlja(self):
+    def for_petlja(self):
         self.pročitaj(NL.OOTV)  # već smo pročitali FOR
         i = self.pročitaj(NL.IME)
         self.pročitaj(NL.PRIDRUŽI)
@@ -401,7 +394,7 @@ class NLParser(Parser):
                 blok.append(self.naredba())
         else:
             blok = [self.naredba()]
-        return Petlja(i, početak, usporedba, granica, inkrement, blok)
+        return FOR_petlja(i, početak, usporedba, granica, inkrement, blok)
 
     def ispis(self):
         ispisi = []
@@ -579,8 +572,10 @@ class Unos(AST('unosi')):
             if novavar.isdigit():
                 novibroj = int(novavar)
                 mem[unos.sadržaj] = novibroj
-            else:
+            elif novavar.startswith('"') and novavar.endswith('"'):
                 mem[unos.sadržaj] = novavar
+            else:
+                raise SemantičkaGreška("Krivi unos!")
 
 class Pridruživanje(AST('ime pridruženo operator')):
     def izvrši(self, mem):
@@ -625,6 +620,16 @@ class Binarna(AST('op lijevo desno')):
                 if o ^ NL.PLUS: return final_lijevo + final_desno
                 else: assert False, 'nepokriveni slučaj binarnog operatora' + str(o)
             except ArithmeticError as ex: o.problem(*ex.args)
+        elif self.lijevo ^ NL.IME and isinstance(self.lijevo.vrijednost(mem),str) and isinstance(self.desno.vrijednost(mem),str):
+                lijevi_string = self.lijevo.vrijednost(mem)
+                desni_string = self.desno.vrijednost(mem)
+                len_lijevo = len(lijevi_string) - 1
+                final_lijevo = lijevi_string[:len_lijevo]  # string bez zadnjeg char-a (")
+                final_desno = desni_string[1:]  # string bez prvog char-a (") 
+                try:
+                    if o ^ NL.PLUS: return final_lijevo + final_desno
+                    else: assert False, 'nepokriveni slučaj binarnog operatora' + str(o)
+                except ArithmeticError as ex: o.problem(*ex.args) 
         else:
             x,y = self.lijevo.vrijednost(mem), self.desno.vrijednost(mem)
         try:
@@ -647,15 +652,18 @@ class Binarna(AST('op lijevo desno')):
 class Uvjet(AST('op lijevo desno')):
     def vrijednost(self, mem):
         o,x,y = self.op, self.lijevo.vrijednost(mem), self.desno.vrijednost(mem)
-        try:
-            if o ^ NL.JEDNAKO: return x == y
-            elif o ^ NL.NJEDNAKO: return x != y
-            elif o ^ NL.MJEDNAKO: return x <= y
-            elif o ^ NL.MANJE: return x < y
-            elif o ^ NL.VJEDNAKO: return x >= y
-            elif o ^ NL.VEĆE: return x > y
-            else: assert False, 'nepokriveni slučaj binarnog operatora' + str(o)
-        except ArithmeticError as ex: o.problem(*ex.args)
+        if type(x) is type(y):
+            try:
+                if o ^ NL.JEDNAKO: return x == y
+                elif o ^ NL.NJEDNAKO: return x != y
+                elif o ^ NL.MJEDNAKO: return x <= y
+                elif o ^ NL.MANJE: return x < y
+                elif o ^ NL.VJEDNAKO: return x >= y
+                elif o ^ NL.VEĆE: return x > y
+                else: assert False, 'nepokriveni slučaj binarnog operatora' + str(o)
+            except ArithmeticError as ex: o.problem(*ex.args)
+        else:
+            raise SemantičkaGreška('Pokušavate usporediti dvije varijable različitog tipa!')
 
 class IF_Grananje(AST('uvjet if_blok else_blok')):
     def izvrši(self, mem):
@@ -687,7 +695,7 @@ class Negacija(AST('ispod')):
     def vrijednost(self, mem):
         return not self.ispod.vrijednost(mem)
 
-class Petlja(AST('varijabla početak usporedba granica inkrement blok')):
+class FOR_petlja(AST('varijabla početak usporedba granica inkrement blok')):
     def izvrši(self, mem):
         kv = self.varijabla.sadržaj
         mem[kv] = self.početak.vrijednost(mem)
@@ -917,12 +925,14 @@ if __name__ == '__main__':
     nl.izvrši() 
 
     ulaz11 = ''' 
-    y = -15+(-2);
-    z = 15;
-    if(!!!(y>z)) 
+    y = "kata";
+    z = "rina";
+    x = "katarina";
+    
+    if((y+z)==x) 
         cout << "y je manji od z:";
 
-    cout << y << z << endl;
+    cout << x <<endl;
     '''
 
     print(ulaz11)
