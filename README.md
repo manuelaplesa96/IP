@@ -1,9 +1,9 @@
 # New Language (NL)
 
-Zadatak nam je bio osmisliti programski jezik koji zadovoljava neke operacije i karakteristike koje inače očekujemo da jezik podržava. Tako naš NL jezik podržava 2 tipa podataka, broj (`BROJ`) i string (`STRING`), pri tome se strigovi zadaju unutar dvostrukih navodnika (" "), dok je broj samo niz znamenki bez razmaka. Nazivi varijabli (`IME`) ne počinju s navodnicima ("), već nužno sa slovom, nakon čega slijedi niz slova ili znamenki. Također želimo da NL prepoznaje i obavlja i neke naredbe, pa kako bi NL neki izraz prepoznao kao naredbu on mora završiti sa ; (`TOČKAZAREZ`). 
+Zadatak nam je bio osmisliti programski jezik koji zadovoljava neke operacije i karakteristike koje inače očekujemo da jezik podržava. Tako naš NL jezik podržava 2 tipa podataka, broj (`BROJ`) i string (`STRING`), pri tome se strigovi zadaju unutar dvostrukih navodnika (" "), dok je broj samo niz znamenki bez razmaka. Nazivi varijabli (`IME`) su također strigovi, ali ne pisani unutar " ", nego u smislu da nazivi varijabli ne smiju početi brojem, već mora početi slovom. Također želimo da NL prepoznaje i obavlja i neke naredbe, pa kako bi NL neki izraz prepoznao kao naredbu on mora završiti sa ; (`TOČKAZAREZ`). 
  
 **Primjer.** x = 1, y = "1"; 
-x i y su varijable s time da je varijabli x pridružena vrijednost 1 tipa broj, a y vrijednost tipa string.
+x i y su varijable s time da je varijabli x pridružena vrijednost 1 tipa broj, a y vrijednsot1 tipa string.
 
 U jeziku je još definirana i klasa `BREAK` koja služi za izlazak iz petlje.
 
@@ -33,6 +33,13 @@ Kako bismo išta mogli raditi s varijablama i vrijednostima koje unesemo, trebaj
 #### Cast
 * pretvaranje broja u string (`TOSTRING`)
 
+```cpp
+toInt(varijabla, broj);
+
+ime = broj;
+toInt(varijabla, ime);
+```
+
 Kako su podržani i negativni brojevi, treba naglasiti da ako je negativan broj prvi u izrazu onda nisu nužne zagrade, ali ako je ispred njega znak operacije, potrebne su zagrade.
 
 **Primjer.** x = -2 * (-3);
@@ -47,6 +54,13 @@ Kako su podržani i negativni brojevi, treba naglasiti da ako je negativan broj 
 
 #### Cast
 * pretvaranje stringa u broj (`TOINT`)
+
+```cpp
+toString(varijabla, broj);
+
+ime = broj;
+toString(varijabla, ime);
+```
 
 Osnovne operacije ne prihvaćaju _mješovite_ tipove, npr. `BROJ`+`STRING`, ali ako želimo takve izraze prvo operandi moraju pretvoriti u isti tip, a pri tome nam pomažu funkcije `TOSTRING` i  `TOINT`.
 Operacije usporedbe vraćaju 1 (ako je izraz istinit) i 0 (ako je izraz lažan).
@@ -75,11 +89,12 @@ else
 for(i=broj1;i<broj2;i++)
 	kod
 ```
-Pri tome gornja (donja) ograda može biti: 
+Pri tome gornja ograda može biti: 
 * i<broj2
 * i<=broj2
 * i>broj2
 * i>=broj2
+ Pri tome je broj2 broj koji je veći ili jednak 0.
 
 Dok vrijednost varijable _i_ možemo mijenjati sa ++ (`i++`,`++i`), --(`i--`,`--i`), +=, -=.
 
@@ -98,7 +113,7 @@ do
 	kod
 while;
 ```
-Primijetimo, _kod_ može biti jedna naredba ili više njih, a u slučaju da ih je više, sve naredbe se nalaze u vitičastim zagradama, (`VOTV`,`VZATV`). Također, uvjet se odnosi isključivo na **jedan** uvjet, a ne na više njih.
+Primjetimo, _kod_ može biti jedna naredba ili više njih, a u slučaju da ih je više sve naredbe se nalaze u vitičastim zagradama, (`VOTV`,`VZATV`). Također, uvjet, se odnosi isključivo na **jedan** uvjet, ne na više njih.
 
 ## Unos, ispis
 

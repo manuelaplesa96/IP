@@ -603,7 +603,7 @@ class Operacije(AST('op lijevo desno')):
                     except ArithmeticError as ex: o.problem(*ex.args)
             except ArithmeticError as ex: o.problem(*ex.args)
         else:
-            raise SemantičkaGreška('Pokušavate raditi aritmetičku operaciju na dvijema varijablama različitog tipa!')
+            raise SemantičkaGreška('Pokušavate raditi aritmetičku operaciju na dvjema varijablama različitog tipa!')
 
 class Uvjet(AST('op lijevo desno')):
     def vrijednost(self, mem):
@@ -739,7 +739,7 @@ if __name__ == '__main__':
     print()
 
 
-    # grananje i petlja
+    # grananje i petlja s greškom....popraviti ispis greske
     primjer3 = '''
         cout << "Primjer3." <<endl;
         x = 15;
@@ -763,18 +763,40 @@ if __name__ == '__main__':
     nl = NLParser.parsiraj(tokeni3)
     print(nl)
     print()
+    #with očekivano('SemantičkaGreška'): nl.izvrši()
     nl.izvrši()
     print()
 
 
+    # cast i petlje
     primjer4 = '''
-        cout << "Primjer4." << endl;
-        y = "15";
+       cout << "Primjer4." << endl;
+        y = "16";
+        zarez = ",";
         toInt(x,y);
+        z = "Niz: ";
             
-        str = 
+        if( x == 16 )
+        {
+            for(i=16;i>=0;i-=2)
+            {
+                toStr(str,i);
+                z = z + str;
 
-
+                if( i != 2 )
+                    z = z + zarez;
+            }
+            cout << z << endl;
+        }
+        else
+        {
+            for(i=0;i<16;i+=2)
+            {
+                toStr(str,i);
+                z += str;
+            }
+            cout << z << endl;
+        }
          
     '''
     print(primjer4)
@@ -786,12 +808,34 @@ if __name__ == '__main__':
     print()
 
 
-    # osnovne operacije s tipovima
+    # 
     primjer5 = '''
-         x = 2;
-         y = 5;
-         z = x + y;
-         
+        cout << "Primjer5." <<endl;
+        cout << "Unesite string: ";
+        cin >> str;
+
+        for(i=0;i<5;i++)
+        {
+            cout << "* ";
+            for(j=0;j<10;j++)
+            {   
+                cout << str;
+                if(j<=i)
+                {
+                    k = 0;
+                    do
+                    {
+                        cout << str;
+                        k++;
+                    }while(k<3);
+                }
+                else
+                {
+                    cout << " * " << endl;
+                    break;
+                }
+            }
+        }   
     '''
     print(primjer5)
     tokeni5 = list(nl_lex(primjer5))
@@ -801,201 +845,4 @@ if __name__ == '__main__':
     nl.izvrši()
     print()
 
-
-
-
-
-    ulaz6 = '''
-        x = 5;
-        y = 6;
-        while(x<7)
-            x = x+1;
-        
-        cout << x <<endl;
-      
-    '''
-
-    print(ulaz6)
-
-    tokeni6 = list(nl_lex(ulaz6))
-    #print(*tokeni5)
-    nl = NLParser.parsiraj(tokeni6)
-    print(nl)
-
-    nl.izvrši()    
-
-    ulaz7 = '''
-        i=0; 
-        do
-        {
-            cout << i << i <<endl;
-            i = i+1;
-        }while(i<6);
-    '''
-
-    print(ulaz7)
-    tokeni7 = list(nl_lex(ulaz7))
-    #print(*tokeni5)
-    nl = NLParser.parsiraj(tokeni7)
-    print(nl)
-    nl.izvrši()    
-
-
-    ulaz8 = '''
-	cin >> novavar;
-        cout << novavar;
-    '''
-
-    print(ulaz8)
-    tokeni8 = list(nl_lex(ulaz8))
-    #print(*tokeni5)
-    nl = NLParser.parsiraj(tokeni8)
-    print(nl)
-    nl.izvrši()   
-
-    ulaz9 = '''
-        i=1;
-	i+=1;
-        cout << i << endl;
-        i++;
-        cout << i << endl;
-        ++i;
-        cout << i << endl;
-        i-=2;
-        cout << i << endl;
-        i--;
-        cout << i << endl;
-    '''
-
-    print(ulaz9)
-    tokeni9 = list(nl_lex(ulaz9))
-    #print(*tokeni5)
-    nl = NLParser.parsiraj(tokeni9)
-    print(nl)
-    nl.izvrši()   
-
-
-    ulaz10 = '''
-    y = "15";
-    toInt(x,y);
-    cout << x << endl;
-
-    //y = "5smc";
-    //toInt(x,y);
-    //cout << x << endl;
-
-    toStr(x,15);
-    cout << x << endl;
-    '''
-
-    print(ulaz10)
-    tokeni = list(nl_lex(ulaz10))
-    #print(*tokeni5)
-    nl = NLParser.parsiraj(tokeni)
-    print(nl)
-    nl.izvrši() 
-
-    ulaz11 = ''' 
-    y = "kata";
-    z = "rina";
-    x1 = "katarina";
-    
-    if((y+z)==x1) 
-        cout << "y je manji od z:";
-    cout << x1 <<endl;
-
-    if(2<3) 
-        cout << "2 je manje od 3";
-
-    '''
-
-    print(ulaz11)
-    tokeni = list(nl_lex(ulaz11))
-    #print(*tokeni5)
-    nl = NLParser.parsiraj(tokeni)
-    print(nl)
-    nl.izvrši() 
-
-
-    ulaz12 = ''' 
-    a = 0 + 5;
-    b = 15 + 0;
-    c = 9 - 0;
-    d = 5 * 1;
-    e = 1 * 6;
-    f = 5 / 1;
-    g = 0 / 5;
-    //h = 5 / 0; 
-    
-    cout << "Optimizacija zbrajanja: " << a << b << endl;
-    cout << "Optimizacija oduzimanja: " << c << endl;
-    cout << "Optimizacija množenja: " << d << e << endl;
-    cout << "Optimizacija dijeljenja: " << f << g << endl;
-    
-
-    '''
-
-    print(ulaz12)
-    tokeni = list(nl_lex(ulaz12))
-    #print(*tokeni5)
-    nl = NLParser.parsiraj(tokeni)
-    print(nl)
-    nl.izvrši() 
-
-
-    ulaz13 = ''' 
-    a = 1+(-2);
-    b = -2+(-3);
-    c = 9 - (-3);
-    d = -5 -( -1);
-    e = 1 * (-5);
-    f = -3 * (-2);
-    g = 2 / (-3);
-    h = -5 / (-5); 
-    
-    cout << "Plus" << a << b << endl;
-    cout << "Minus: " << c << d << endl;
-    cout << "Puta: " << e << f << endl;
-    cout << "Kroz: " << g << h << endl;
-
-    x = 2; y = 3;
-    z = x + y; 
-    cout << z;
-    z = x + (-y);
-    cout << " " << z;
-    z = -x + (-y);
-    cout << " " << z;
-    z = -x + y;
-    cout << " " << z << endl;
-    
-    
-
-    '''
-
-    print(ulaz13)
-    tokeni = list(nl_lex(ulaz13))
-    #print(*tokeni5)
-    nl = NLParser.parsiraj(tokeni)
-    print(nl)
-    nl.izvrši() 
-
-    ulaz14 = ''' 
-   for( i = 0; i <= 10; i++ ) {
-        if( i < 9 ) 
-            cout << i << endl;
-        else break; 
-    }
-    for( i = 10; i >= 0; i-- ) {
-            cout << i << endl;
-    }
-
-    '''
-    
-
-    print(ulaz14)
-    tokeni = list(nl_lex(ulaz14))
-    #print(*tokeni5)
-    nl = NLParser.parsiraj(tokeni)
-    print(nl)
-    nl.izvrši() 
 
