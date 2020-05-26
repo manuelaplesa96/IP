@@ -696,87 +696,112 @@ class FOR_Petlja(AST('varijabla početak usporedba granica inkrement blok')):
 
 if __name__ == '__main__':
 
+    # inicijalizacija varijabli i osnovne operacije
     primjer1 = '''
-        x = 5;
-        y = "rijec";
-
         cout << "Primjer1." << endl;
-        cout << "Ispis vrijednosti varijable x: " << x << endl;
-        cout << "Ispis vrijednosti varijable y: " << y << endl;  
+        x = 5;
+        xx = x / 10;
+        y = "rijec";
+        yy = "Duga " + y;
+        
+        cout << "Ispis vrijednosti varijable xx: " << xx << endl;
+        cout << "Ispis vrijednosti varijable yy: " << yy << endl;  
     '''
-
     print(primjer1)
     tokeni1 = list(nl_lex(primjer1))
     nl = NLParser.parsiraj(tokeni1)
     print(nl)
     print()
     nl.izvrši()
-
     print()
-    ulaz3 = '''
-        x = "kata" + "rina";  
-        cout << x << endl; 
-    '''
+    
 
-    print(ulaz3)
+    # petlja i upis
+    primjer2 = '''
+        cout << "Primjer2." << endl;
+        cout << "Unesite broj: ";
+        cin >> x;
 
-    tokeni3 = list(nl_lex(ulaz3))
-    nl = NLParser.parsiraj(tokeni3)
-    print(nl)
-
-    nl.izvrši()
-
-    ulaz31 = '''
-	y = "rina";
-        x = "kata" + y;  
-        cout << x << endl; 
-    '''
-
-    print(ulaz31)
-
-    tokeni31 = list(nl_lex(ulaz31))
-    nl = NLParser.parsiraj(tokeni31)
-    print(nl)
-
-    nl.izvrši()
-
-    ulaz4 = '''
-        x = 3+2;
-        cout << x << endl;
-    '''
-
-    print(ulaz4)
-
-    tokeni4 = list(nl_lex(ulaz4))
-    nl = NLParser.parsiraj(tokeni4)
-    print(nl)
-
-    nl.izvrši()
-
-    ulaz5 = '''
-        x = 5;
-        y = 6;
-        if( (x+1) > (6+x) ) 
+        cout << "Ispis niza brojeva: ";
+        for(i=0;i<10;i++)
         {
-            x = 1;
-            cout << x << endl;
+            y = x + i;
+            cout << y << " ";
+        }
+        cout << endl;
+    '''
+    print(primjer2)
+    tokeni2 = list(nl_lex(primjer2))
+    nl = NLParser.parsiraj(tokeni2)
+    print(nl)
+    print()
+    nl.izvrši()
+    print()
+
+
+    # grananje i petlja
+    primjer3 = '''
+        cout << "Primjer3." <<endl;
+        x = 15;
+        y = 20;
+
+        if( x > (y-6) )
+        {
+            while (x > 0){
+                x--;
+                cout << "x = " << x << endl;
+            }
         }
         else
         {
-            x = x+1;
-            cout << x <<endl; 
+            cout << "x je veći!" << endl;
         }
-      
+         
     '''
+    print(primjer3)
+    tokeni3 = list(nl_lex(primjer3))
+    nl = NLParser.parsiraj(tokeni3)
+    print(nl)
+    print()
+    nl.izvrši()
+    print()
 
-    print(ulaz5)
 
-    tokeni5 = list(nl_lex(ulaz5))
-    #print(*tokeni5)
+    primjer4 = '''
+        cout << "Primjer4." << endl;
+        y = "15";
+        toInt(x,y);
+            
+        str = 
+
+
+         
+    '''
+    print(primjer4)
+    tokeni4 = list(nl_lex(primjer4))
+    nl = NLParser.parsiraj(tokeni4)
+    print(nl)
+    print()
+    nl.izvrši()
+    print()
+
+
+    # osnovne operacije s tipovima
+    primjer5 = '''
+         x = 2;
+         y = 5;
+         z = x + y;
+         
+    '''
+    print(primjer5)
+    tokeni5 = list(nl_lex(primjer5))
     nl = NLParser.parsiraj(tokeni5)
     print(nl)
+    print()
+    nl.izvrši()
+    print()
 
-    nl.izvrši()  
+
 
 
 
