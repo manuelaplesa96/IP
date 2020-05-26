@@ -135,7 +135,7 @@ def nl_lex(kod):
 #         OOTV izraz OZATV aritm ( OOTV izraz OZATV | BROJ | STRING | IME )  | IME ( OOTV izraz OZATV | BROJ | STRING | IME )
 # aritm -> JEDNAKO | MJEDNAKO | VJEDNAKO | NJEDNAKO | MANJE | VEĆE
 # str -> JEDNAKO
-# izraz-> ( MINUS | '' ) ( BROJ | IME ) ( PLUS | MINUS | PUTA | KROZ ) predznak ( BROJ | IME ) | (STRING | IME ) PLUS ( STRING | IME )  ##unutar zagrada
+# izraz-> ( MINUS | '' ) ( BROJ | IME ) ( PLUS | MINUS | PUTA | KROZ | aritm ) predznak ( BROJ | IME ) | (STRING | IME ) PLUS ( STRING | IME )  
 # predznak -> OOTV MINUS OZATV | ''
 # ispis -> COUT MMANJE ispisi TOČKAZAREZ | COUT MMANJE ispisi MMANJE ENDL TOČKAZAREZ
 # ispisi -> '' | IME ispisi 
@@ -411,7 +411,7 @@ class NLParser(Parser):
         br = self.zadnji
         self.pročitaj(NL.TOČKAZAREZ)
         return br
- 
+
     def izraz(self):
         if self >> NL.MINUS: # prvi je negativan broj
             op = self.zadnji
@@ -420,13 +420,12 @@ class NLParser(Parser):
             prvi = Unarna(op, prvi)
             
             op = nenavedeno
-            if self >> {NL.PLUS, NL.MINUS, NL.PUTA, NL.KROZ} or self >> {NL.JEDNAKO, NL.NJEDNAKO, NL.MJEDNAKO, NL.MANJE, NL.VJEDNAKO, NL.VEĆE}: # drugi dio opcionalan (v. Binarna)
+            if self >> {NL.PLUS, NL.MINUS, NL.PUTA, NL.KROZ}:
                 op = self.zadnji
             if(op == nenavedeno): # upisali smo samo jedan broj
                 return prvi
             elif self >> {NL.IME, NL.BROJ}: 
                 drugi = self.zadnji
-                #return Binarna(op, prvi, drugi)
             elif self >> NL.OOTV: # negativan broj na drugom mjestu mora doći u zagradama
                 pom_op = self.pročitaj(NL.MINUS)
                 if self >> {NL.IME, NL.BROJ}:
@@ -438,56 +437,30 @@ class NLParser(Parser):
             prvi = self.zadnji
 
             op = nenavedeno
-            if self >> {NL.PLUS, NL.MINUS, NL.PUTA, NL.KROZ} or self >> {NL.JEDNAKO, NL.NJEDNAKO, NL.MJEDNAKO, NL.MANJE, NL.VJEDNAKO, NL.VEĆE}: # drugi dio opcionalan (v. Binarna)
+            if self >> {NL.PLUS, NL.MINUS, NL.PUTA, NL.KROZ}:
                 op = self.zadnji
-            if(op == nenavedeno): # broj
+            if(op == nenavedeno): 
                 return prvi
             elif self >> {NL.IME, NL.BROJ}: 
                 drugi = self.zadnji
-                #return Binarna(op, prvi, drugi)
             elif self >> NL.OOTV:
                 pom_op = self.pročitaj(NL.MINUS)
                 if self >> {NL.IME, NL.BROJ}:
                     drugi = self.zadnji
                 drugi = Unarna(pom_op, drugi)
                 self.pročitaj(NL.OZATV)
-           # else:
-            #    drugi = self.pročitaj(NL.BROJ)
-                #return Binarna(op, prvi, drugi)
-        elif self >> NL.STRING: # string+string & string+ime
+        elif self >> NL.STRING:
             prvi = self.zadnji
             op = nenavedeno
             if self >> NL.PLUS:
                 op = self.zadnji
-            if(op == nenavedeno): # string
+            if(op == nenavedeno): 
                 return prvi
             elif self >> NL.IME:
                 drugi = self.zadnji
-                #return Binarna(op,prvi,drugi)
             else:
                 drugi = self.pročitaj(NL.STRING)
-                #return Binarna(op, prvi, drugi)
-       # elif self >> NL.IME: # ime+broj & ime+string & ime+ime ......napravljeno da podrazumijevamo da osoba zna da
-                             # string ima samo +  (i da ne može ići string + broj i broj + string bez prethodnog castanja)
-            #prvi = self.zadnji
-        
-           # op = nenavedeno
-            #if self >> {NL.PLUS, NL.MINUS, NL.PUTA, NL.KROZ}:
-            #    op = self.zadnji
-              
-            #if(op == nenavedeno):
-                #return prvi
-            #elif self >> {NL.IME, NL.BROJ}:
-                #drugi = self.zadnji
-                #return Binarna(op, prvi, drugi)
-            #elif self >> NL.BROJ: # vjerujemo da osoba pazi da string ima samo +
-             #   drugi = self.zadnji
-                #return Binarna(op, prvi, drugi)
-            #else:
-                #drugi = self.pročitaj(NL.STRING)
-                #return Binarna(op, prvi, drugi)
-        
-        #prvi, drugi = prvi.vrijednost, drugi.optim()
+ 
         nula = Token(NL.BROJ, '0')
         jedan = Token(NL.BROJ, '1')
 
@@ -609,45 +582,33 @@ class Unarna(AST('op ispod')):
 
 class Binarna(AST('op lijevo desno')):
     def vrijednost(self, mem):
-        o = self.op
-        if self.lijevo ^ NL.STRING:
-            lijevi_string = self.lijevo.vrijednost(mem)
-            desni_string = self.desno.vrijednost(mem)
-            len_lijevo = len(lijevi_string) - 1
-            final_lijevo = lijevi_string[:len_lijevo]  # string bez zadnjeg char-a (")
-            final_desno = desni_string[1:]  # string bez prvog char-a (")
+        o,x,y = self.op, self.lijevo.vrijednost(mem), self.desno.vrijednost(mem)
+        if type(x) is type(y):
             try:
-                if o ^ NL.PLUS: return final_lijevo + final_desno
-                else: assert False, 'nepokriveni slučaj binarnog operatora' + str(o)
+                if type(x) == str:
+                    lijevi_string = x
+                    desni_string = y
+                    len_lijevo = len(lijevi_string) - 1
+                    final_lijevo = lijevi_string[:len_lijevo]
+                    final_desno = desni_string[1:]
+                    try:
+                        if o ^ NL.PLUS: 
+                            return final_lijevo + final_desno
+                        else: assert False, 'nepokriveni slučaj binarnog operatora' + str(o)
+                    except ArithmeticError as ex: o.problem(*ex.args)
+                else:
+                    try:
+                        if o ^ NL.PLUS: return x + y
+                        elif o ^ NL.MINUS: return x - y
+                        elif o ^ NL.PUTA: return x * y
+                        elif o ^ NL.KROZ: return x / y
+
+                        else: assert False, 'nepokriveni slučaj binarnog operatora' + str(o)
+                    except ArithmeticError as ex: o.problem(*ex.args)
             except ArithmeticError as ex: o.problem(*ex.args)
-        elif self.lijevo ^ NL.IME and isinstance(self.lijevo.vrijednost(mem),str) and isinstance(self.desno.vrijednost(mem),str):
-                lijevi_string = self.lijevo.vrijednost(mem)
-                desni_string = self.desno.vrijednost(mem)
-                len_lijevo = len(lijevi_string) - 1
-                final_lijevo = lijevi_string[:len_lijevo]  # string bez zadnjeg char-a (")
-                final_desno = desni_string[1:]  # string bez prvog char-a (") 
-                try:
-                    if o ^ NL.PLUS: return final_lijevo + final_desno
-                    else: assert False, 'nepokriveni slučaj binarnog operatora' + str(o)
-                except ArithmeticError as ex: o.problem(*ex.args) 
         else:
-            x,y = self.lijevo.vrijednost(mem), self.desno.vrijednost(mem)
-        try:
-            if o ^ NL.PLUS: return x + y
-            elif o ^ NL.MINUS: return x - y
-            elif o ^ NL.PUTA: return x * y
-            elif o ^ NL.KROZ: return x / y
+            raise SemantičkaGreška('Pokušavate raditi aritmetičku operaciju na dvjema varijablama različitog tipa!')
 
-            #opcionalno (ako želimo moć ispisat npr y=2<3, pa da tu ispiše 1, je li se ovo kosi s gramatikom?): 
-            elif o ^ NL.JEDNAKO: return int(x == y)
-            elif o ^ NL.NJEDNAKO: return int(x != y)
-            elif o ^ NL.MJEDNAKO: return int(x <= y)
-            elif o ^ NL.MANJE: return int(x < y)
-            elif o ^ NL.VJEDNAKO: return int(x >= y)
-            elif o ^ NL.VEĆE: return int(x > y)
-
-            else: assert False, 'nepokriveni slučaj binarnog operatora' + str(o)
-        except ArithmeticError as ex: o.problem(*ex.args)
 
 class Uvjet(AST('op lijevo desno')):
     def vrijednost(self, mem):
@@ -931,8 +892,8 @@ if __name__ == '__main__':
     
     if((y+z)==x) 
         cout << "y je manji od z:";
-
     cout << x <<endl;
+
     '''
 
     print(ulaz11)
@@ -1014,6 +975,7 @@ if __name__ == '__main__':
     for( i = 10; i >= 0; i-- ) {
             cout << i << endl;
     }
+
     '''
     
 
