@@ -210,34 +210,34 @@ class NLParser(Parser):
             while self >> NL.NEGACIJA:
                 neg += 1
             self.pročitaj(NL.OOTV)
-            ispod = self.uvjet() # prvi uvjet negiran
+            ispod = self.uvjet()
             self.pročitaj(NL.OZATV)
-            if neg%2 == 0: # paran broj ! => nije negiran izraz
+            if neg%2 == 0: # paran broj ! => nije negiran uvjet
                 uvjet = ispod
             else: # neparan broj ! => negiran je
-                uvjet=Negacija(ispod) #dodamo taj prvi negirani uvjet
+                uvjet=Negacija(ispod)
  
         else:    
-            uvjet=self.uvjet() # dodamo taj prvi uvjet
+            uvjet=self.uvjet() 
         
-        self.pročitaj(NL.OZATV)  # kraj uvjeta
+        self.pročitaj(NL.OZATV)  
 
-        if self >> NL.VOTV:  # blok naredbi
+        if self >> NL.VOTV:  # if_blok naredbi
             if_blok = []
             while not self >> NL.VZATV:
                 if_blok.append(self.naredba())
         else:
-            if_blok = [self.naredba()]
+            if_blok = [self.naredba()] # samo jedna naredba
 
         if self >> NL.ELSE:
-            if self >> NL.VOTV:
+            if self >> NL.VOTV: # else_blok naredbi
                 else_blok = []
                 while not self >> NL.VZATV:
                     else_blok.append(self.naredba())
             else:
                 else_blok = [self.naredba()]
         else:
-            else_blok = []  # izvrši prazan blok
+            else_blok = []  # prazan else_blok
 
         return IF_Grananje(uvjet, if_blok, else_blok)
 
@@ -249,24 +249,24 @@ class NLParser(Parser):
             while self >> NL.NEGACIJA:
                 neg += 1
             self.pročitaj(NL.OOTV)
-            ispod = self.uvjet() # prvi uvjet negiran
+            ispod = self.uvjet() 
             self.pročitaj(NL.OZATV)
-            if neg%2 == 0: # paran broj ! => nije negiran izraz
+            if neg%2 == 0: # paran broj ! => nije negiran uvjet
                 uvjet = ispod
             else: # neparan broj ! => negiran je
-                uvjet=Negacija(ispod) #dodamo taj prvi negirani uvjet
+                uvjet=Negacija(ispod) 
  
         else:    
-            uvjet=self.uvjet() # dodamo taj prvi uvjet
+            uvjet=self.uvjet() 
         
-        self.pročitaj(NL.OZATV)  # kraj uvjeta
+        self.pročitaj(NL.OZATV)  
 
         if self >> NL.VOTV:  # blok naredbi
             blok = []
             while not self >> NL.VZATV:
                 blok.append(self.naredba())
         else:
-            blok = [self.naredba()]
+            blok = [self.naredba()] # samo jedna naredba
 
         return WHILE_Petlja(uvjet, blok)
 
@@ -275,8 +275,6 @@ class NLParser(Parser):
         blok = []
         while not self >> NL.VZATV:
             blok.append(self.naredba())
-        #else:
-        #    blok = [self.naredba()]
         
         self.pročitaj(NL.WHILE)
         self.pročitaj(NL.OOTV)
@@ -288,15 +286,14 @@ class NLParser(Parser):
             self.pročitaj(NL.OOTV)
             ispod = self.uvjet() # prvi uvjet negiran
             self.pročitaj(NL.OZATV)
-            if neg%2 == 0: # paran broj ! => nije negiran izraz
+            if neg%2 == 0: # paran broj ! => nije negiran uvjet
                 uvjet = ispod
             else: # neparan broj ! => negiran je
-                uvjet=Negacija(ispod) #dodamo taj prvi negirani uvjet
+                uvjet=Negacija(ispod) 
         else:    
-            uvjet=self.uvjet() # dodamo taj prvi uvjet
-        
-        self.pročitaj(NL.OZATV)  # kraj uvjeta
-        self.pročitaj(NL.TOČKAZAREZ) #kraj naredbe
+            uvjet=self.uvjet() 
+        self.pročitaj(NL.OZATV)  
+        self.pročitaj(NL.TOČKAZAREZ) 
 
         return DO_Petlja(uvjet, blok)
 
@@ -306,53 +303,53 @@ class NLParser(Parser):
             if self >> {NL.JEDNAKO, NL.NJEDNAKO, NL.MJEDNAKO, NL.MANJE, NL.VJEDNAKO, NL.VEĆE}:
                 op = self.zadnji
             
-            if self >> NL.OOTV: # broj == izraz -
+            if self >> NL.OOTV: # broj op izraz 
                 drugi = self.izraz()
                 self.pročitaj(NL.OZATV)
-            elif self >> NL.IME: ## pretp da je ime broja broj == ime +
+            elif self >> NL.IME: # broj op ime 
                 drugi = self.zadnji
             else:
-                drugi = self.pročitaj(NL.BROJ) # broj == broj +
-        elif self >> NL.STRING: # string == string 
+                drugi = self.pročitaj(NL.BROJ) # broj op broj 
+        elif self >> NL.STRING: 
             prvi = self.zadnji
             if self >> NL.JEDNAKO:
                 op = self.zadnji
  
-            if self >> NL.IME:
+            if self >> NL.IME: # string == ime
                 drugi = self.zadnji
-            elif self >> NL.OOTV: # string == izraz -
+            elif self >> NL.OOTV: # string == izraz 
                 drugi = self.izraz()
                 self.pročitaj(NL.OZATV)
-            else:
+            else: # string == string 
                 drugi = self.pročitaj(NL.STRING)
-        elif self >> NL.IME: # string == ime
+        elif self >> NL.IME: 
             prvi = self.zadnji
             if self >> {NL.NJEDNAKO, NL.MJEDNAKO, NL.MANJE, NL.VJEDNAKO, NL.VEĆE, NL.JEDNAKO}:
                 op = self.zadnji
             
-            if self >> NL.OOTV: # ime == izraz
+            if self >> NL.OOTV: # ime op izraz
                 drugi = self.izraz()
                 self.pročitaj(NL.OZATV)
-            elif self >> NL.BROJ: # ime == broj
+            elif self >> NL.BROJ: # ime op broj
                 drugi = self.zadnji
-            elif self >> NL.STRING: #ime == string
+            elif self >> NL.STRING: #ime op string
                 drugi = self.zadnji
-            else: # ime == ime
+            else: # ime op ime
                 drugi = self.pročitaj(NL.IME)        
-        elif self >> NL.OOTV: # izraz==izraz, izraz==broj
+        elif self >> NL.OOTV: 
             prvi = self.izraz()
             self.pročitaj(NL.OZATV)
             if self >> {NL.JEDNAKO, NL.NJEDNAKO, NL.MJEDNAKO, NL.MANJE, NL.VJEDNAKO, NL.VEĆE}:
                 op = self.zadnji
             
-            if self >> NL.OOTV:
+            if self >> NL.OOTV: # izraz op izraz
                 drugi = self.izraz()
                 self.pročitaj(NL.OZATV) 
-            elif self >> NL.STRING:
+            elif self >> NL.STRING: # izraz == string
                 drugi = self.zadnji
-            elif self >> NL.IME:
+            elif self >> NL.IME: # izraz op ime
                 drugi = self.zadnji
-            else:
+            else: # izraz op broj
                 drugi = self.pročitaj(NL.BROJ)
 
         return Uvjet(op,prvi,drugi)
@@ -607,7 +604,6 @@ class Operacije(AST('op lijevo desno')):
         else:
             raise SemantičkaGreška('Pokušavate raditi aritmetičku operaciju na dvijema varijablama različitog tipa!')
 
-
 class Uvjet(AST('op lijevo desno')):
     def vrijednost(self, mem):
         o,x,y = self.op, self.lijevo.vrijednost(mem), self.desno.vrijednost(mem)
@@ -698,38 +694,28 @@ class FOR_Petlja(AST('varijabla početak usporedba granica inkrement blok')):
 
 
 if __name__ == '__main__':
-    ulaz = '5 + 1++ && { } () - 6/7//ja sam linijski komentar\n'
-    # ulaz = 'i=5'
-    print(ulaz)
 
-    tokeni = list(nl_lex(ulaz))
-    print(*tokeni)  # 'otpakirana' lista
+    primjer1 = '''
+        x = 5;
+        y = "rijec";
 
-    print()
-
-    ulaz2 = '''
-    for( i = 0; i <= 10; i+=2 ) {
-        if( i < 9 ) 
-            cout << i << endl;
-        else break; 
-    }
-    for( i = 10; i >= 0; i+=2 ) {
-            cout << i << endl;
-    }
+        cout << "Primjer1." << endl;
+        cout << "Ispis vrijednosti varijable x: " << x << endl;
+        cout << "Ispis vrijednosti varijable y: " << y << endl;  
     '''
 
-    print(ulaz2)
-
-    tokeni2 = list(nl_lex(ulaz2))
-    nl = NLParser.parsiraj(tokeni2)
+    print(primjer1)
+    tokeni1 = list(nl_lex(primjer1))
+    nl = NLParser.parsiraj(tokeni1)
     print(nl)
+    print()
     nl.izvrši()
 
+    print()
     ulaz3 = '''
         x = "kata" + "rina";  
         cout << x << endl; 
     '''
-    #ovo ispisuje "kata""rina", KATARINAAAAA! :)))
 
     print(ulaz3)
 
