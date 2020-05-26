@@ -59,7 +59,7 @@ def nl_lex(kod):
             lex.pročitaj_do('"')
             yield lex.token(NL.STRING)
         elif znak.isalpha():
-            lex.zvijezda(str.isalpha)
+            lex.zvijezda(str.isalnum)
             yield lex.literal(NL.IME)
         elif znak == '/':  # višelinijski komentari /* */, linijski //
             if lex.slijedi('/'):
@@ -142,7 +142,8 @@ def nl_lex(kod):
 # cast -> TOSTRING OOTV IME ZAREZ ( BROJ | IME ) OZATV TOČKAZAREZ | TOINT OOTV IME ZAREZ (STRING | IME) OZATV TOČKAZAREZ
 
 
-# stabla: Prekid, Blok, Program, Ispis, Unos, Pridruživanje, Negativni_broj, Operacije, Uvjet, IF_Grananje, WHILE_Petlja, DO_Petlja, Negacija, FOR_Petlja
+# stabla: Prekid, Blok, Program, Ispis, Unos, Pridruživanje, Negativni_broj, Operacije, 
+#         Uvjet, IF_Grananje, WHILE_Petlja, DO_Petlja, Negacija, FOR_Petlja
 
 
 class NLParser(Parser):
@@ -886,11 +887,11 @@ if __name__ == '__main__':
     ulaz11 = ''' 
     y = "kata";
     z = "rina";
-    x = "katarina";
+    x1 = "katarina";
     
-    if((y+z)==x) 
+    if((y+z)==x1) 
         cout << "y je manji od z:";
-    cout << x <<endl;
+    cout << x1 <<endl;
 
     if(2<3) 
         cout << "2 je manje od 3";
