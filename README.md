@@ -57,15 +57,14 @@ Operacije usporedbe vraćaju 1 (ako je izraz istinit) i 0 (ako je izraz lažan).
 * ** if ** (`IF`)
 ```cpp
 if(uvjet)
-		kod
+	kod
 ```
 * **if-else** (`IF`, `ELSE`) 
-    
-   ```cpp
- if(uvjet)
-        kod
+```cpp
+if(uvjet)
+	kod
 else
-        kod
+	kod
 ```
 
 ## Petlje
