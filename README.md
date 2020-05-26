@@ -1,6 +1,6 @@
 # New Language (NL)
 
-Zadatak nam je bio osmisliti programski jezik koji zadovoljava neke operacije i karakteristike koje inače očekujemo da jezik podržava. Tako naš NL jezik podržava 2 tipa podataka, broj (`BROJ`) i string (`STRING`), pri tome se strigovi zadaju unutar dvostrukih navodnika (" "), dok je broj samo niz znamenki bez razmaka. Nazivi varijabli (`IME`) ne počinju s navodnicima ("), već nužno sa slovom, nakon čega slijedi niz slova ili brojki. Također želimo da NL prepoznaje i obavlja i neke naredbe, pa kako bi NL neki izraz prepoznao kao naredbu on mora završiti sa ; (`TOČKAZAREZ`). 
+Zadatak nam je bio osmisliti programski jezik koji zadovoljava neke operacije i karakteristike koje inače očekujemo da jezik podržava. Tako naš NL jezik podržava 2 tipa podataka, broj (`BROJ`) i string (`STRING`), pri tome se strigovi zadaju unutar dvostrukih navodnika (" "), dok je broj samo niz znamenki bez razmaka. Nazivi varijabli (`IME`) ne počinju s navodnicima ("), već nužno sa slovom, nakon čega slijedi niz slova ili znamenki. Također želimo da NL prepoznaje i obavlja i neke naredbe, pa kako bi NL neki izraz prepoznao kao naredbu on mora završiti sa ; (`TOČKAZAREZ`). 
  
 **Primjer.** x = 1, y = "1"; 
 x i y su varijable s time da je varijabli x pridružena vrijednost 1 tipa broj, a y vrijednost tipa string.
