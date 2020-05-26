@@ -1,9 +1,9 @@
 # New Language (NL)
 
-Zadatak nam je bio osmisliti programski jezik koji zadovoljava neke operacije i karakteristike koje inače očekujemo da jezik podržava. Tako naš NL jezik podržava 2 tipa podataka, broj (`BROJ`) i string (`STRING`), pri tome se strigovi zadaju unutar dvostrukih navodnika (" "), dok je broj samo niz znamenki bez razmaka. Nazivi varijabli (`IME`) su također strigovi, ali ne pisani unutar " ", nego u smislu da nazivi varijabli ne smiju početi brojem, već mora početi slovom. Također želimo da NL prepoznaje i obavlja i neke naredbe, pa kako bi NL neki izraz prepoznao kao naredbu on mora završiti sa ; (`TOČKAZAREZ`). 
+Zadatak nam je bio osmisliti programski jezik koji zadovoljava neke operacije i karakteristike koje inače očekujemo da jezik podržava. Tako naš NL jezik podržava 2 tipa podataka, broj (`BROJ`) i string (`STRING`), pri tome se strigovi zadaju unutar dvostrukih navodnika (" "), dok je broj samo niz znamenki bez razmaka. Nazivi varijabli (`IME`) ne počinju s navodnicima ("), već nužno sa slovom, nakon čega slijedi niz slova ili brojki. Također želimo da NL prepoznaje i obavlja i neke naredbe, pa kako bi NL neki izraz prepoznao kao naredbu on mora završiti sa ; (`TOČKAZAREZ`). 
  
 **Primjer.** x = 1, y = "1"; 
-x i y su varijable s time da je varijabli x pridružena vrijednost 1 tipa broj, a y vrijednsot1 tipa string.
+x i y su varijable s time da je varijabli x pridružena vrijednost 1 tipa broj, a y vrijednost tipa string.
 
 U jeziku je još definirana i klasa `BREAK` koja služi za izlazak iz petlje.
 
@@ -75,7 +75,7 @@ else
 for(i=broj1;i<broj2;i++)
 	kod
 ```
-Pri tome gornja ograda može biti: 
+Pri tome gornja (donja) ograda može biti: 
 * i<broj2
 * i<=broj2
 * i>broj2
@@ -98,7 +98,7 @@ do
 	kod
 while;
 ```
-Primjetimo, _kod_ može biti jedna naredba ili više njih, a u slučaju da ih je više sve naredbe se nalaze u vitičastim zagradama, (`VOTV`,`VZATV`). Također, uvjet, se odnosi isključivo na **jedan** uvjet, ne na više njih.
+Primijetimo, _kod_ može biti jedna naredba ili više njih, a u slučaju da ih je više, sve naredbe se nalaze u vitičastim zagradama, (`VOTV`,`VZATV`). Također, uvjet se odnosi isključivo na **jedan** uvjet, a ne na više njih.
 
 ## Unos, ispis
 
