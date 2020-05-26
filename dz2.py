@@ -401,6 +401,7 @@ class NLParser(Parser):
             elif self >> NL.ENDL:
                 novired = True
                 break
+            else: raise self.greška() #dodala (Katarina)
         self.pročitaj(NL.TOČKAZAREZ)
         return Ispis(ispisi, novired)
 
@@ -512,7 +513,7 @@ class NLParser(Parser):
         return Pridruživanje(ime, stari, operator)
 
 
-class Prekid(Exception): pass
+class Prekid(NelokalnaKontrolaToka): pass#
 
 class Blok(AST('blok')):
     pass
@@ -520,8 +521,10 @@ class Blok(AST('blok')):
 class Program(AST('naredbe')):
     def izvrši(self):
         memorija = {}
-        for naredba in self.naredbe:
-                naredba.izvrši(memorija)
+        try:#
+            for naredba in self.naredbe:
+                    naredba.izvrši(memorija)
+        except Prekid: raise SemantičkaGreška("Nedozvoljen break izvan petlje!")#
 
 class Ispis(AST('ispisi novired')):
     def izvrši(self, mem):
@@ -636,14 +639,18 @@ class IF_Grananje(AST('uvjet if_blok else_blok')):
 class WHILE_Petlja(AST('uvjet blok')):
     def izvrši(self, mem):
         while self.uvjet.vrijednost(mem):
-            for naredba in self.blok:
-                naredba.izvrši(mem)
+            try:#
+                for naredba in self.blok:
+                    naredba.izvrši(mem)
+            except Prekid: break #
 
 class DO_Petlja(AST('uvjet blok')):
     def izvrši(self, mem):
         while 1:
-            for naredba in self.blok:
-                naredba.izvrši(mem)
+            try:#
+                for naredba in self.blok:
+                    naredba.izvrši(mem)
+            except Prekid: break #
             if not self.uvjet.vrijednost(mem):
                 break;       
           
@@ -840,6 +847,31 @@ if __name__ == '__main__':
     print(primjer5)
     tokeni5 = list(nl_lex(primjer5))
     nl = NLParser.parsiraj(tokeni5)
+    print(nl)
+    print()
+    nl.izvrši()
+    print()
+
+
+
+    # nađi max
+    primjer6 = '''
+    cout << "Unesi broj:";
+    cin >> x;
+    max = x; //pretpostavimo da je prvi najveci
+    do{
+        if(x > max)
+            max = x;
+            
+        cout << "Unesi broj: ";
+        cin >> x;
+    }while(x > 0);
+    
+    cout << "Najveći broj je: " << max << endl;
+    '''
+    print(primjer6)
+    tokeni6 = list(nl_lex(primjer6))
+    nl = NLParser.parsiraj(tokeni6)
     print(nl)
     print()
     nl.izvrši()
