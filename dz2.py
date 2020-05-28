@@ -118,7 +118,7 @@ def nl_lex(kod):
             yield lex.literal(NL)
 
 
-# Beskontekstna gramatika
+### Beskontekstna gramatika:
 # start -> naredba naredbe
 # naredbe -> '' | naredba naredbe
 # naredba -> pridruži | predinkrement | predekrement | naredbe | petlja | grananje |
@@ -142,8 +142,20 @@ def nl_lex(kod):
 # cast -> TOSTRING OOTV IME ZAREZ ( BROJ | IME ) OZATV TOČKAZAREZ | TOINT OOTV IME ZAREZ (STRING | IME) OZATV TOČKAZAREZ
 
 
-# stabla: Prekid, Blok, Program, Ispis, Unos, Pridruživanje, Negativni_broj, Operacije, 
-#         Uvjet, IF_Grananje, WHILE_Petlja, DO_Petlja, Negacija, FOR_Petlja
+### Apstraktna sintaksna stabla:
+# Prekid
+# Program: naredbe
+# Ispis: ispisi novired
+# Unos: unosi
+# Pridruživanje: ime, pridruženo, operator
+# Negativni broj: op, ispod
+# Operacije: op, lijevo, desno
+# Uvjet: op, lijevo, desno
+# IF_Grananje: uvjet, if_blok, else_blok
+# WHILE_Petlja: uvjet, blok
+# DO_Petlja: uvjet, blok
+# Negacija: ispod
+# FOR_Petlja: varijabla, početak, usporedba, granica, inkrement, blok
 
 
 class NLParser(Parser):
@@ -515,9 +527,6 @@ class NLParser(Parser):
 
 class Prekid(NelokalnaKontrolaToka): pass#
 
-class Blok(AST('blok')):
-    pass
-
 class Program(AST('naredbe')):
     def izvrši(self):
         memorija = {}
@@ -745,11 +754,11 @@ if __name__ == '__main__':
     nl.izvrši()
     print()
 
-
-    # grananje i petlja s greškom....popraviti ispis greske
+    # grananje i petlja s greškom...kako bi se vidjelo što se dobije kod 
+    # np. usporedbe različitih tipova
     primjer3 = '''
         cout << "Primjer3." <<endl;
-        x = 15;
+        x = "15";
         y = 20;
 
         if( x > (y-6) )
@@ -766,12 +775,12 @@ if __name__ == '__main__':
          
     '''
     print(primjer3)
-    tokeni3 = list(nl_lex(primjer3))
-    nl = NLParser.parsiraj(tokeni3)
+    #tokeni3 = list(nl_lex(primjer3))
+    nl = NLParser.parsiraj(nl_lex(primjer3))
     print(nl)
     print()
-    #with očekivano('SemantičkaGreška'): nl.izvrši()
-    nl.izvrši()
+    with očekivano(SemantičkaGreška):
+        print(*NLParser.parsiraj(nl_lex(primjer3)).izvrši())
     print()
 
 
@@ -779,7 +788,7 @@ if __name__ == '__main__':
     primjer4 = '''
        cout << "Primjer4." << endl;
         y = "16";
-        zarez = ",";
+        //zarez = ",";
         toInt(x,y);
         z = "Niz: ";
             
@@ -790,8 +799,8 @@ if __name__ == '__main__':
                 toStr(str,i);
                 z = z + str;
 
-                if( i != 2 )
-                    z = z + zarez;
+                //if( i != 2 )
+                //    z = z + ", ";
             }
             cout << z << endl;
         }
@@ -832,15 +841,20 @@ if __name__ == '__main__':
     
             cout << "Najveći broj je: " << max << endl;
 
+        cout << "Sada unesite " << max << " broj stringova." << endl;
         s = "Niz riječi: ";
-        zarez = ",";
+        cnt = 0;
         while(max > 0)
         {
+            cnt ++;
             cout << "Unesi string: ";
             cin >> str;
+            toStr(index, cnt);
+            s = s + index;
+            //s = s + ". riječ: ";
             s = s + str;
-            if(max != 1)
-                s = s + zarez;
+            //if(max != 1)
+            //    s = s + ", ";
             max--;  
         } 
         cout << s << endl;
@@ -854,7 +868,4 @@ if __name__ == '__main__':
     print()
 
 
-
- 
-
-
+    
