@@ -198,7 +198,7 @@ class NLParser(Parser):
             pridruženo = self.izraz()
             self.pročitaj(NL.TOČKAZAREZ)
             return Pridruživanje(ime, pridruženo, operator)
-        elif self >> {NL.PPLUS, NL.MMINUS}: #postinkrement
+        elif self >> {NL.PPLUS, NL.MMINUS}: #postinkrement i postdekrement
             operator = self.zadnji
             self.pročitaj(NL.TOČKAZAREZ)
             return Pridruživanje(ime, nenavedeno, operator)
@@ -434,7 +434,7 @@ class NLParser(Parser):
                 op = self.zadnji
             if(op == nenavedeno): # upisali smo samo jedan broj
                 return prvi
-            elif self >> {NL.IME, NL.BROJ}: 
+            elif self >> {NL.IME, NL.BROJ, NL.STRING}: 
                 drugi = self.zadnji
             elif self >> NL.OOTV: # negativan broj na drugom mjestu mora doći u zagradama
                 pom_op = self.pročitaj(NL.MINUS)
@@ -443,7 +443,7 @@ class NLParser(Parser):
                 drugi = Negativni_broj(pom_op, drugi)
                 self.pročitaj(NL.OZATV)
 
-        elif self >> {NL.BROJ,NL.IME}:
+        elif self >> {NL.BROJ,NL.IME}: # prvi je pozitivan broj
             prvi = self.zadnji
 
             op = nenavedeno
@@ -451,9 +451,9 @@ class NLParser(Parser):
                 op = self.zadnji
             if(op == nenavedeno): 
                 return prvi
-            elif self >> {NL.IME, NL.BROJ}: 
+            elif self >> {NL.IME, NL.BROJ, NL.STRING}: 
                 drugi = self.zadnji
-            elif self >> NL.OOTV:
+            elif self >> NL.OOTV: # negativan broj na drugom mjestu mora doći u zagradama
                 pom_op = self.pročitaj(NL.MINUS)
                 if self >> {NL.IME, NL.BROJ}:
                     drugi = self.zadnji
@@ -563,13 +563,30 @@ class Pridruživanje(AST('ime pridruženo operator')):
         if self.operator ^ NL.PRIDRUŽI:
             mem[self.ime.sadržaj] = self.pridruženo.vrijednost(mem)
         elif self.operator ^ NL.PJEDNAKO:
-            mem[self.ime.sadržaj] += self.pridruženo.vrijednost(mem)
+            if isinstance(self.ime.vrijednost(mem), str):
+                lijevi_string = self.ime.vrijednost(mem)
+                desni_string = self.pridruženo.vrijednost(mem)
+                len_lijevo = len(lijevi_string) - 1
+                final_lijevo = lijevi_string[:len_lijevo]
+                final_desno = desni_string[1:]
+                mem[self.ime.sadržaj] = final_lijevo + final_desno
+            else:
+                mem[self.ime.sadržaj] += self.pridruženo.vrijednost(mem)
         elif self.operator ^ NL.MIJEDNAKO:
-            mem[self.ime.sadržaj] -= self.pridruženo.vrijednost(mem)
+            if isinstance(self.pridruženo.vrijednost(mem), str):
+                raise SemantičkaGreška('Ne možete operaciju -= koristiti na stringovima!')
+            else:
+                mem[self.ime.sadržaj] -= self.pridruženo.vrijednost(mem)
         elif self.operator ^ NL.PPLUS:
-            mem[self.ime.sadržaj] = mem[self.ime.sadržaj] + 1
+            if isinstance(mem[self.ime.sadržaj], str):
+                raise SemantičkaGreška('Ne možete inkremente koristiti na stringovima!')
+            else:
+                mem[self.ime.sadržaj] = mem[self.ime.sadržaj] + 1
         elif self.operator ^ NL.MMINUS:
-            mem[self.ime.sadržaj] = mem[self.ime.sadržaj] - 1
+            if isinstance(mem[self.ime.sadržaj], str):
+                raise SemantičkaGreška('Ne možete dekremente koristiti na stringovima!')
+            else:
+                mem[self.ime.sadržaj] = mem[self.ime.sadržaj] - 1
         elif self.operator ^ NL.TOINT:
             trenutni = self.pridruženo.vrijednost(mem)
             len_tren = len(trenutni) - 1
@@ -583,9 +600,9 @@ class Pridruživanje(AST('ime pridruženo operator')):
             novi = '"' + novi + '"'
             mem[self.ime.sadržaj] = novi
 
-class Negativni_broj(AST('op ispod')):
+class Negativni_broj(AST('op broj')):
     def vrijednost(self, env):
-        o, z = self.op, self.ispod.vrijednost(env)
+        o, z = self.op, self.broj.vrijednost(env)
         if o ^ NL.MINUS: return -z
 
 class Operacije(AST('op lijevo desno')):
@@ -788,7 +805,7 @@ if __name__ == '__main__':
     primjer4 = '''
        cout << "Primjer4." << endl;
         y = "16";
-        //zarez = ",";
+        zarez = ",";
         toInt(x,y);
         z = "Niz: ";
             
@@ -798,9 +815,9 @@ if __name__ == '__main__':
             {
                 toStr(str,i);
                 z = z + str;
-
-                //if( i != 2 )
-                //    z = z + ", ";
+                
+                if( i != 2 )
+                    z += ", ";
             }
             cout << z << endl;
         }
@@ -851,14 +868,16 @@ if __name__ == '__main__':
             cin >> str;
             toStr(index, cnt);
             s = s + index;
-            //s = s + ". riječ: ";
+            s = s + ". riječ: ";
             s = s + str;
-            //if(max != 1)
-            //    s = s + ", ";
+            if(max != 1)
+                s = s + ", ";
             max--;  
         } 
         cout << s << endl;
     '''
+
+    
     print(primjer5)
     tokeni5 = list(nl_lex(primjer5))
     nl = NLParser.parsiraj(tokeni5)
@@ -866,6 +885,3 @@ if __name__ == '__main__':
     print()
     nl.izvrši()
     print()
-
-
-    
