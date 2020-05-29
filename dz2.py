@@ -375,7 +375,7 @@ class NLParser(Parser):
         self.pročitaj(NL.TOČKAZAREZ)
 
         i2 = self.pročitaj(NL.IME)
-        if i != i2:
+        if i != i2:  
             raise SemantičkaGreška('nisu podržane različite varijable')
         if self >> {NL.MANJE, NL.VEĆE, NL.MJEDNAKO, NL.VJEDNAKO}:
             usporedba = self.zadnji
@@ -397,7 +397,7 @@ class NLParser(Parser):
                 inkrement = self.pročitaj(NL.BROJ)
         self.pročitaj(NL.OZATV)
 
-        if self >> NL.VOTV:
+        if self >> NL.VOTV: # ako postoji blok naredbi
             blok = []
             while not self >> NL.VZATV:
                 blok.append(self.naredba())
@@ -413,11 +413,11 @@ class NLParser(Parser):
             elif self >> NL.ENDL:
                 novired = True
                 break
-            else: raise self.greška() #dodala (Katarina)
+            else: raise self.greška() 
         self.pročitaj(NL.TOČKAZAREZ)
         return Ispis(ispisi, novired)
 
-    def prekid(self):
+    def prekid(self): #break
         br = self.zadnji
         self.pročitaj(NL.TOČKAZAREZ)
         return br
@@ -525,24 +525,23 @@ class NLParser(Parser):
         return Pridruživanje(ime, stari, operator)
 
 
-class Prekid(NelokalnaKontrolaToka): pass#
+class Prekid(NelokalnaKontrolaToka): pass #break
 
 class Program(AST('naredbe')):
     def izvrši(self):
         memorija = {}
-        try:#
+        try:
             for naredba in self.naredbe:
                     naredba.izvrši(memorija)
-        except Prekid: raise SemantičkaGreška("Nedozvoljen break izvan petlje!")#
+        except Prekid: raise SemantičkaGreška("Nedozvoljen break izvan petlje!")
 
 class Ispis(AST('ispisi novired')):
     def izvrši(self, mem):
         for ispis in self.ispisi:
             if isinstance(ispis.vrijednost(mem), str): #string cuvaj s " " a ispisuj ga bez
-                #if ispis.vrijednost(mem)[:1] == '"': #ako pocinje s navodnicima - nije dobro ako je trenutni int
                 bez_navodnika = ispis.vrijednost(mem)[1:-1]
                 print(bez_navodnika, end=' ')
-            else:
+            else: #ako je int
                 print(ispis.vrijednost(mem), end=' ')
         if self.novired: print()
 
@@ -550,10 +549,10 @@ class Unos(AST('unosi')):
     def izvrši(self, mem):
         for unos in self.unosi:
             novavar = input() #on automatski napravi str od unosa
-            if novavar.startswith('-') or novavar.isdigit():
+            if novavar.startswith('-') or novavar.isdigit(): #ako je pozitivan ili negativan broj
                 novibroj = int(novavar)
                 mem[unos.sadržaj] = novibroj
-            elif novavar.startswith('"') and novavar.endswith('"'):
+            elif novavar.startswith('"') and novavar.endswith('"'): #inace je string
                 mem[unos.sadržaj] = novavar
             else:
                 raise SemantičkaGreška("Krivi unos!")
@@ -563,29 +562,29 @@ class Pridruživanje(AST('ime pridruženo operator')):
         if self.operator ^ NL.PRIDRUŽI:
             mem[self.ime.sadržaj] = self.pridruženo.vrijednost(mem)
         elif self.operator ^ NL.PJEDNAKO:
-            if isinstance(self.ime.vrijednost(mem), str):
+            if isinstance(self.ime.vrijednost(mem), str): #ako je string, makni desne navodnike lijevog stringa i lijeve desnog
                 lijevi_string = self.ime.vrijednost(mem)
                 desni_string = self.pridruženo.vrijednost(mem)
                 len_lijevo = len(lijevi_string) - 1
                 final_lijevo = lijevi_string[:len_lijevo]
                 final_desno = desni_string[1:]
-                mem[self.ime.sadržaj] = final_lijevo + final_desno
-            else:
+                mem[self.ime.sadržaj] = final_lijevo + final_desno #konkatenacija
+            else: #int
                 mem[self.ime.sadržaj] += self.pridruženo.vrijednost(mem)
         elif self.operator ^ NL.MIJEDNAKO:
-            if isinstance(self.pridruženo.vrijednost(mem), str):
+            if isinstance(self.pridruženo.vrijednost(mem), str):  
                 raise SemantičkaGreška('Ne možete operaciju -= koristiti na stringovima!')
-            else:
+            else: #int
                 mem[self.ime.sadržaj] -= self.pridruženo.vrijednost(mem)
         elif self.operator ^ NL.PPLUS:
             if isinstance(mem[self.ime.sadržaj], str):
                 raise SemantičkaGreška('Ne možete inkremente koristiti na stringovima!')
-            else:
+            else: #int
                 mem[self.ime.sadržaj] = mem[self.ime.sadržaj] + 1
         elif self.operator ^ NL.MMINUS:
             if isinstance(mem[self.ime.sadržaj], str):
                 raise SemantičkaGreška('Ne možete dekremente koristiti na stringovima!')
-            else:
+            else: #int
                 mem[self.ime.sadržaj] = mem[self.ime.sadržaj] - 1
         elif self.operator ^ NL.TOINT:
             trenutni = self.pridruženo.vrijednost(mem)
@@ -608,9 +607,9 @@ class Negativni_broj(AST('op broj')):
 class Operacije(AST('op lijevo desno')):
     def vrijednost(self, mem):
         o,x,y = self.op, self.lijevo.vrijednost(mem), self.desno.vrijednost(mem)
-        if type(x) is type(y):
+        if type(x) is type(y): #operacija nad istim tipovima
             try:
-                if type(x) == str:
+                if type(x) == str: #konkatenacija
                     lijevi_string = x
                     desni_string = y
                     len_lijevo = len(lijevi_string) - 1
@@ -626,7 +625,7 @@ class Operacije(AST('op lijevo desno')):
                         if o ^ NL.PLUS: return x + y
                         elif o ^ NL.MINUS: return x - y
                         elif o ^ NL.PUTA: return x * y
-                        elif o ^ NL.KROZ: return int(x / y)
+                        elif o ^ NL.KROZ: return int(x / y) # cjelobrojno dijeljenje
 
                         else: assert False, 'nepokriveni slučaj binarnog operatora' + str(o)
                     except ArithmeticError as ex: o.problem(*ex.args)
@@ -660,23 +659,23 @@ class IF_Grananje(AST('uvjet if_blok else_blok')):
                 for naredba in self.else_blok:
                     naredba.izvrši(mem)
             else:
-                pass
+                pass #ako nema else bloka
 
 class WHILE_Petlja(AST('uvjet blok')):
     def izvrši(self, mem):
         while self.uvjet.vrijednost(mem):
-            try:#
+            try:
                 for naredba in self.blok:
                     naredba.izvrši(mem)
-            except Prekid: break #
+            except Prekid: break #break u while petlji
 
 class DO_Petlja(AST('uvjet blok')):
     def izvrši(self, mem):
-        while 1:
-            try:#
+        while 1: #prodi prvi put bezuvjetno
+            try:
                 for naredba in self.blok:
                     naredba.izvrši(mem)
-            except Prekid: break #
+            except Prekid: break 
             if not self.uvjet.vrijednost(mem):
                 break;       
           
@@ -729,9 +728,12 @@ class FOR_Petlja(AST('varijabla početak usporedba granica inkrement blok')):
 
 if __name__ == '__main__':
 
-    # inicijalizacija varijabli i osnovne operacije
     primjer1 = '''
-        cout << "Primjer1." << endl;
+	
+	/*U ovom primjeru vidimo kako se varijable mogu inicijalizirati te
+	vidimo neke osnovne brojevne i stringovne operacije*/
+
+        cout << "Primjer1" << endl;
         x = 5;
         xx = x / 10;
         y = "rijec";
@@ -751,8 +753,13 @@ if __name__ == '__main__':
 
     # petlja i upis
     primjer2 = '''
-        cout << "Primjer2." << endl;
-        cout << "Unesite broj: ";
+        cout << "Primjer2" << endl;
+	
+	/*U ovom primjeru vidimo kako unijeti neki broj te na koji nacin 
+	funkcionira for petlja koja ce ispisati iducih 10 brojeva pocevsi od 
+	unesenog broja*/
+
+        cout << "Unesite broj:";
         cin >> x;
 
         cout << "Ispis niza brojeva: ";
@@ -771,10 +778,13 @@ if __name__ == '__main__':
     nl.izvrši()
     print()
 
-    # grananje i petlja s greškom...kako bi se vidjelo što se dobije kod 
-    # np. usporedbe različitih tipova
+
     primjer3 = '''
-        cout << "Primjer3." <<endl;
+        cout << "Primjer3" <<endl;
+	
+	/*U ovom primjeru vidimo sto se dogodi ako usporedujemo dvije varijable
+	razlicitog tipa*/
+
         x = "15";
         y = 20;
 
@@ -803,17 +813,22 @@ if __name__ == '__main__':
 
     # cast i petlje
     primjer4 = '''
-       cout << "Primjer4." << endl;
+       cout << "Primjer4" << endl;
+
+	/*U ovom primjeru vidimo kako se string moze castati u int te se zatim
+	koristiti u brojevnim operacijama. Nakon toga neki int takoder mozemo 
+	castati u string te koristiti u stringovim operacijama*/
+
         y = "16";
         zarez = ",";
-        toInt(x,y);
+        toInt(x,y); 	//cast u int - pospremi int u x
         z = "Niz: ";
             
         if( x == 16 )
         {
             for(i=16;i>=0;i-=2)
             {
-                toStr(str,i);
+                toStr(str,i);	//cast u string - pospremi string u str
                 z = z + str;
                 
                 if( i != 2 )
@@ -843,31 +858,36 @@ if __name__ == '__main__':
 
     # 
     primjer5 = '''
-        cout << "Primjer5." <<endl;
+        cout << "Primjer5" <<endl;
+
+	    /*U ovom primjeru unosimo brojeve dok se ne unese nula te ispisujemo 
+		najveci broj. Zatim unosimo onoliko stringova koliki je najveci 
+		uneseni broj. Na kraju ispisujemo string koji je konkatenacija svih 
+		unesenih stringova.*/
      
             cout << "Unesi broj:";
             cin >> x;
             max = x; //pretpostavimo da je prvi najveci
             do{
-                cout << "Unesi broj: ";
+                cout << "Unesi broj:";
                 cin >> x;
                 if(x > max)
                     max = x;
             
             }while(x > 0);
     
-            cout << "Najveći broj je: " << max << endl;
+            cout << "Najveći broj je:" << max << endl;
 
-        cout << "Sada unesite " << max << " broj stringova." << endl;
+        cout << "Sada unesite" << max << "string(ova)." << endl;
         s = "Niz riječi: ";
         cnt = 0;
         while(max > 0)
         {
             cnt ++;
-            cout << "Unesi string: ";
+            cout << "Unesi string:";
             cin >> str;
             toStr(index, cnt);
-            s = s + index;
+            s = s + index;	//konkatenacija
             s = s + ". riječ: ";
             s = s + str;
             if(max != 1)
@@ -885,3 +905,5 @@ if __name__ == '__main__':
     print()
     nl.izvrši()
     print()
+
+
